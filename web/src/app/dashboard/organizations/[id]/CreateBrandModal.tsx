@@ -79,6 +79,22 @@ export default function CreateBrandModal({ organizationId }: CreateBrandModalPro
                 />
               </div>
 
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <input 
+                  type="checkbox" 
+                  id="requires_approval" 
+                  name="requires_approval" 
+                  defaultChecked 
+                  className="form-checkbox"
+                />
+                <label htmlFor="requires_approval" style={{ fontSize: '0.85rem', color: 'var(--foreground)' }}>
+                  Requires Content Approval
+                  <p style={{ margin: 0, marginTop: '2px', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                    Generated content will pause in "Review" status until manually approved.
+                  </p>
+                </label>
+              </div>
+
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setIsOpen(false)} className="btn" style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                   Cancel

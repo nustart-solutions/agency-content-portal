@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
 import CreateAssetModal from './CreateAssetModal'
 import AssetStatusSelect from './AssetStatusSelect'
+import AssetExecutionActions from './AssetExecutionActions'
 
 export default async function CampaignPage({ 
   params 
@@ -88,7 +89,12 @@ export default async function CampaignPage({
                       </span>
                     </div>
                   </div>
-                  <AssetStatusSelect assetId={asset.id} campaignId={campaign.id} currentStatus={asset.status} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {asset.status === 'draft' && (
+                      <AssetExecutionActions assetId={asset.id} campaignId={campaign.id} status={asset.status} />
+                    )}
+                    <AssetStatusSelect assetId={asset.id} campaignId={campaign.id} currentStatus={asset.status} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -120,7 +126,12 @@ export default async function CampaignPage({
                       </span>
                     </div>
                   </div>
-                  <AssetStatusSelect assetId={asset.id} campaignId={campaign.id} currentStatus={asset.status} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {asset.status === 'draft' && (
+                      <AssetExecutionActions assetId={asset.id} campaignId={campaign.id} status={asset.status} />
+                    )}
+                    <AssetStatusSelect assetId={asset.id} campaignId={campaign.id} currentStatus={asset.status} />
+                  </div>
                 </div>
               ))}
             </div>

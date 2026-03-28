@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { updateAssetStatus } from './actions'
+import { updateAssetStatus, triggerPublishAsset } from './actions'
 
 const STATUSES = [
   'draft', 'ready', 'in_progress', 'review', 'approved', 
@@ -22,7 +22,11 @@ export default function AssetStatusSelect({
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value
     startTransition(async () => {
-      await updateAssetStatus(assetId, campaignId, newStatus)
+      if (newStatus === 'approved') {
+        await triggerPublishAsset(assetId, campaignId)
+      } else {
+        await updateAssetStatus(assetId, campaignId, newStatus)
+      }
     })
   }
 

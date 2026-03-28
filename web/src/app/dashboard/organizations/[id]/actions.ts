@@ -6,11 +6,17 @@ import { revalidatePath } from 'next/cache'
 export const createBrand = async (organizationId: string, formData: FormData) => {
   const name = formData.get('name') as string
   const logoUrl = formData.get('logo_url') as string
+  const requiresApproval = formData.get('requires_approval') === 'on'
   const supabase = await createClient()
 
   const { error: brandError } = await supabase
     .from('brands')
-    .insert([{ organization_id: organizationId, name, logo_url: logoUrl || null }])
+    .insert([{ 
+      organization_id: organizationId, 
+      name, 
+      logo_url: logoUrl || null,
+      requires_approval: requiresApproval
+    }])
 
   if (brandError) {
     return { error: `Database Error: ${brandError.message} (Code: ${brandError.code})` }
