@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 export async function createAsset(campaignId: string, formData: FormData) {
   const supabase = await createClient()
@@ -197,4 +198,21 @@ export async function deleteAsset(assetId: string, campaignId: string) {
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
   return { success: true }
+}
+
+export async function deleteCampaign(campaignId: string, brandId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('campaigns')
+    .delete()
+    .eq('id', campaignId)
+
+  if (error) {
+    console.error('Error deleting campaign:', error)
+    return { error: error.message }
+  }
+
+  // Next.js redirect gracefully interrupts Server Action flow and forces 302 navigation client-side
+  redirect(`/dashboard/brands/${brandId}`)
 }

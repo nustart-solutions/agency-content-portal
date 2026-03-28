@@ -14,7 +14,25 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
   const [showUpload, setShowUpload] = useState(false)
 
   if (status !== 'draft' && status !== 'in_progress') {
-    return null // Only visible when in draft or stuck in progress
+    return (
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <button 
+          onClick={() => {
+            if (window.confirm("Are you sure you want to delete this asset?")) {
+              startTransition(async () => { await deleteAsset(assetId, campaignId) })
+            }
+          }}
+          disabled={isPending}
+          style={{ 
+            background: 'transparent', border: 'none', color: '#ff4444',
+            padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: isPending ? 'not-allowed' : 'pointer',
+            opacity: isPending ? 0.5 : 1
+          }}
+        >
+          {isPending ? 'Deleting...' : 'Delete'}
+        </button>
+      </div>
+    )
   }
 
   const handleGenerate = () => {
@@ -75,14 +93,19 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
                 Reset to Draft
               </button>
               <button 
-                onClick={() => startTransition(async () => { await deleteAsset(assetId, campaignId) })}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this asset?")) {
+                    startTransition(async () => { await deleteAsset(assetId, campaignId) })
+                  }
+                }}
                 disabled={isPending}
                 style={{ 
                   background: 'transparent', border: '1px solid #ff4444', color: '#ff4444',
-                  padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer'
+                  padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer',
+                  opacity: isPending ? 0.5 : 1
                 }}
               >
-                Delete Asset
+                {isPending ? '...' : 'Delete Asset'}
               </button>
             </>
           ) : (
@@ -109,15 +132,20 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
                 Upload
               </button>
               <button 
-                onClick={() => startTransition(async () => { await deleteAsset(assetId, campaignId) })}
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this asset?")) {
+                    startTransition(async () => { await deleteAsset(assetId, campaignId) })
+                  }
+                }}
                 disabled={isPending}
                 style={{ 
                   background: 'transparent', border: 'none', color: '#ff4444',
                   padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer',
-                  marginLeft: 'auto'
+                  marginLeft: 'auto',
+                  opacity: isPending ? 0.5 : 1
                 }}
               >
-                Delete
+                {isPending ? '...' : 'Delete'}
               </button>
             </>
           )}

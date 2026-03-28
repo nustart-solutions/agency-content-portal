@@ -98,17 +98,30 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
         import io
         import json
         from datetime import datetime
+        from googleapiclient.http import MediaIoBaseUpload
         
         google_doc_url = None
-        # Handle typo in case it's service_accout_json or service_account_json
-        service_account_info_str = os.environ.get("service_accout_json") or os.environ.get("service_account_json")
+        # Handle typo and varying uppercase/lowercase formats in Modal Secrets
+        possible_keys = ["service_accout_json", "service_account_json", "SERVICE_ACCOUT_JSON", "SERVICE_ACCOUNT_JSON", "GOOGLE_SERVICE_ACCOUNT_JSON"]
+        service_account_info_str = next((os.environ.get(k) for k in possible_keys if os.environ.get(k)), None)
         
         if service_account_info_str:
             try:
+                import json
+                from google.oauth2.service_account import Credentials
+                from googleapiclient.discovery import build
+                
                 creds_info = json.loads(service_account_info_str)
-                creds = service_account.Credentials.from_service_account_info(
+                
+                # Check if the user accidentally pasted the wrapped JSON from secrets.json 
+                # instead of the raw Google Service account JSON
+                if "google_cloud" in creds_info:
+                    print("Detected nested 'google_cloud' key in secret. Unwrapping...")
+                    creds_info = creds_info["google_cloud"]
+                
+                creds = Credentials.from_service_account_info(
                     creds_info, 
-                    scopes=['https://www.googleapis.com/auth/drive']
+                    scopes=['https://www.googleapis.com/auth/drive.file']
                 )
                 drive_service = build('drive', 'v3', credentials=creds)
                 

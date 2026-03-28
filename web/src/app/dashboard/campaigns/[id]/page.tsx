@@ -3,6 +3,7 @@ import Link from 'next/link'
 import CreateAssetModal from './CreateAssetModal'
 import AssetStatusSelect from './AssetStatusSelect'
 import AssetExecutionActions from './AssetExecutionActions'
+import DeleteCampaignButton from './DeleteCampaignButton'
 
 export default async function CampaignPage({ 
   params 
@@ -61,7 +62,10 @@ export default async function CampaignPage({
             Target Publish: {campaign.target_publish_date ? new Date(campaign.target_publish_date).toLocaleDateString() : 'TBD'}
           </p>
         </div>
-        <CreateAssetModal campaignId={campaign.id} />
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <CreateAssetModal campaignId={campaign.id} />
+          <DeleteCampaignButton campaignId={campaign.id} brandId={brandId || ''} />
+        </div>
       </header>
 
       {assetsError && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>Error loading assets: {assetsError.message}</div>}
@@ -103,9 +107,7 @@ export default async function CampaignPage({
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {asset.status === 'draft' && (
-                      <AssetExecutionActions assetId={asset.id} campaignId={campaign.id} status={asset.status} />
-                    )}
+                    <AssetExecutionActions assetId={asset.id} campaignId={campaign.id} status={asset.status} />
                     <AssetStatusSelect assetId={asset.id} campaignId={campaign.id} currentStatus={asset.status} />
                   </div>
                 </div>
@@ -149,9 +151,7 @@ export default async function CampaignPage({
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    {asset.status === 'draft' && (
-                      <AssetExecutionActions assetId={asset.id} campaignId={campaign.id} status={asset.status} />
-                    )}
+                    <AssetExecutionActions assetId={asset.id} campaignId={campaign.id} status={asset.status} />
                     <AssetStatusSelect assetId={asset.id} campaignId={campaign.id} currentStatus={asset.status} />
                   </div>
                 </div>
