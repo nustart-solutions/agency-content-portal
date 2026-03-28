@@ -31,15 +31,18 @@ def generate_asset(data: Dict[str, Any]):
     from google import genai
     
     # 1. Init Connections
+    print(f"== Starting Generate Asset for {data} ==")
     supabase_url = os.environ.get("SUPABASE_URL")
     supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not supabase_url or not supabase_key:
+        print("ERROR: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in Modal Secrets!")
         return {"error": "Missing Supabase Credentials"}
         
     supabase = create_client(supabase_url, supabase_key)
     
     asset_id = data.get("asset_id")
     if not asset_id:
+        print("ERROR: API payload did not contain 'asset_id'")
         return {"error": "asset_id required"}
         
     try:
@@ -95,11 +98,16 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
             # We call the publish function directly inside Modal to save latency
             publish_asset.local({"asset_id": asset_id})
             
+        print(f"SUCCESS: Generated content and saved to DB. New Status: {new_status}")
         return {"success": True, "status": new_status, "asset_id": asset_id}
         
     except Exception as e:
+        print(f"CRITICAL ERROR in generate_asset: {str(e)}")
         # Revert on fail
-        supabase.table("assets").update({"status": "draft"}).eq("id", asset_id).execute()
+        try:
+            supabase.table("assets").update({"status": "draft"}).eq("id", asset_id).execute()
+        except Exception as inner_e:
+            print(f"FAILED to revert to draft: {str(inner_e)}")
         return {"error": str(e)}
 
 

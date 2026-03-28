@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { triggerGenerateAsset, submitExternalAsset } from './actions'
+import { triggerGenerateAsset, submitExternalAsset, resetAssetToDraft, deleteAsset } from './actions'
 
 interface Props {
   assetId: string
@@ -13,8 +13,8 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
   const [isPending, startTransition] = useTransition()
   const [showUpload, setShowUpload] = useState(false)
 
-  if (status !== 'draft') {
-    return null // Only visible when in draft
+  if (status !== 'draft' && status !== 'in_progress') {
+    return null // Only visible when in draft or stuck in progress
   }
 
   const handleGenerate = () => {
@@ -27,6 +27,14 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
     startTransition(async () => {
       await submitExternalAsset(assetId, campaignId, formData)
       setShowUpload(false)
+    })
+  }
+
+  // Fallback to yank an asset out of "In Progress" purgatory
+  const handleReset = () => {
+    startTransition(async () => {
+      // We will create a quick reset trigger in actions.ts below, but for now we can just recycle the trigger function or create a new one. 
+      // Actually, since we need a dedicated server action to reset it, I will add it to the import block.
     })
   }
 
@@ -52,29 +60,66 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
             Cancel
           </button>
         </form>
-      ) : (
         <>
-          <button 
-            onClick={handleGenerate}
-            disabled={isPending}
-            style={{ 
-              background: 'var(--glass-bg)', border: '1px solid var(--primary)', color: 'var(--primary)',
-              padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer',
-              fontWeight: 500
-            }}
-          >
-            Generate AI
-          </button>
-          <button 
-            onClick={() => setShowUpload(true)}
-            disabled={isPending}
-            style={{ 
-              background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)',
-              padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer'
-            }}
-          >
-            Upload
-          </button>
+          {status === 'in_progress' ? (
+            <>
+              <button 
+                onClick={() => startTransition(() => resetAssetToDraft(assetId, campaignId))}
+                disabled={isPending}
+                style={{ 
+                  background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)',
+                  padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer'
+                }}
+              >
+                Reset to Draft
+              </button>
+              <button 
+                onClick={() => startTransition(() => deleteAsset(assetId, campaignId))}
+                disabled={isPending}
+                style={{ 
+                  background: 'transparent', border: '1px solid #ff4444', color: '#ff4444',
+                  padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer'
+                }}
+              >
+                Delete Asset
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                onClick={handleGenerate}
+                disabled={isPending}
+                style={{ 
+                  background: 'var(--glass-bg)', border: '1px solid var(--primary)', color: 'var(--primary)',
+                  padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer',
+                  fontWeight: 500
+                }}
+              >
+                Generate AI
+              </button>
+              <button 
+                onClick={() => setShowUpload(true)}
+                disabled={isPending}
+                style={{ 
+                  background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)',
+                  padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer'
+                }}
+              >
+                Upload
+              </button>
+              <button 
+                onClick={() => startTransition(() => deleteAsset(assetId, campaignId))}
+                disabled={isPending}
+                style={{ 
+                  background: 'transparent', border: 'none', color: '#ff4444',
+                  padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer',
+                  marginLeft: 'auto'
+                }}
+              >
+                Delete
+              </button>
+            </>
+          )}
         </>
       )}
     </div>

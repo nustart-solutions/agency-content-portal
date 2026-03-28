@@ -1,20 +1,49 @@
 # Directive: Automated Context Generation Pipeline
 
-**Layer 1 Context**: This directive outlines the standard operating procedure for generating, storing, and retrieving standardized Brand Contexts. It serves as the bridge between the Orchestration layer (Next.js UI) and the Execution layer (Modal Python webhooks).
+**Layer# Asset Execution & Transparency Layer
 
-## 1. Goal
-Enforce a rigorous, highly flexible structure for context generation, standardization, and retrieval. When a new Brand is created, the system must autonomously scrape their website and synthesize pillars of brand identity securely into a dedicated relational database table (`brand_contexts`) to allow for rich client editing.
+The user wants to bridge the frontend UI with the Python execution layer (Modal) and, most importantly, wants full transparency into what context and templates are actually being passed to the LLM. 
 
-## 2. Inputs
-- `brand_id` (UUID): The unique identifier for the brand in Supabase.
-- `website_url` (Text): The primary domain of the brand (e.g., `https://example.com`).
+## Proposed Changes
 
-## 3. Outputs (Deliverables)
-The system will rigidly generate scalable Context Entities in a `1-to-many` relational table format. Supported out-of-the-box contexts:
-- `brand-voice`
-- `features`
-- `target-keywords`
-- `seo-guidelines`
+### Database
+Update the database to track the compiled prompt sent to the LLM.
+
+#### [NEW] `database/07_asset_execution_logs.sql`
+- Add `compiled_prompt TEXT` column to the `assets` table.
+- This will allow the Modals webhook to write the exact prompt it sent to Gemini down to the character.
+
+---
+
+### Python Execution Layer
+
+#### [MODIFY] `execution/modal_pipeline.py`
+- Modify the `generate_asset` function.
+- Before awaiting the Gemini response, it will save the `prompt` variable into the `assets.compiled_prompt` column. This creates a permanent, auditable log of what context was sent.
+
+---
+
+### Frontend Next.js Admin UI
+
+#### [MODIFY] `web/src/app/dashboard/campaigns/[id]/page.tsx`
+- Make the Asset Title a clickable `<Link href="/dashboard/assets/{asset.id}">`. Currently, it's just raw text.
+
+#### [NEW] `web/src/app/dashboard/assets/[id]/page.tsx`
+- Build a new detail view for individual Assets.
+- **Top Section**: Read-only (or manageable) view of the generated `content_markdown`.
+- **Transparency Section**: A dedicated "AI Execution Context" accordion or side-panel that reveals `asset.compiled_prompt` so an Agency Admin can see exactly which Knowledge Bank variables and prompt templates made it into the shot.
+
+## Open Questions
+
+1. **Local webhook testing**: Since we are about to trigger the execution layer from the frontend, do you want us to set up standard mock triggers so we can verify the DB and UI without actually burning Gemini API credits/Modal compute right away, or should we wire it straight up?
+2. **Text Editor**: For the generated `content_markdown` variable showing up in the UI, do you want just a raw `<textarea>` for MVP, or a read-only rendered markdown block?
+
+## Verification Plan
+
+### Manual Verification
+- I will create a dummy asset in the Campaign UI.
+- I will manually trigger the Python webhook via a script or button.
+- I will navigate to the new `assets/[id]` page and visually confirm both the Content and the exact Prompt Context are visible.-guidelines`
 - `style-guide`
 - `internal-links-map`
 - `competitor-analysis`
