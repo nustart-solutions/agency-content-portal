@@ -320,18 +320,21 @@ def publish_asset(data: Dict[str, Any]):
         return {"error": str(e)}
 
 # ==========================================
+# ==========================================
 # WEBHOOK: generate_brand_context
 # ==========================================
 @app.function(
     image=image,
     secrets=[modal.Secret.from_name("content-portal-secrets")],
-    timeout=300
+    timeout=600 # upgraded to 600s to allow multiple pages
 )
 @modal.web_endpoint(method="POST")
 def generate_brand_context(data: Dict[str, Any]):
     import os
     import requests
     import json
+    import xml.etree.ElementTree as ET
+    from urllib.parse import urlparse
     from supabase import create_client
     from google import genai
     from google.genai import types
@@ -348,25 +351,73 @@ def generate_brand_context(data: Dict[str, Any]):
         # 1. Update status to 'generating'
         supabase.table("brands").update({"context_status": "generating"}).eq("id", brand_id).execute()
         
-        # 2. Scrape Homepage
-        resp = requests.get(website_url, timeout=15)
-        html_content = resp.text
+        # 2. Extract Sitemap URLs
+        parsed_url = urlparse(website_url)
+        base_domain = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        sitemap_url = f"{base_domain}/sitemap.xml"
         
-        # 3. Call Gemini to synthesize
+        urls_to_scrape = [website_url] # Always fallback/start with the root domain
+        
+        try:
+            print(f"Fetching sitemap from {sitemap_url}...")
+            # We strictly pass headers as some CDNs block python requests
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            resp = requests.get(sitemap_url, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                root = ET.fromstring(resp.content)
+                found_urls = [elem.text for elem in root.iter() if 'loc' in elem.tag and elem.text]
+                
+                valid_urls = []
+                for u in found_urls:
+                    lower_u = u.lower()
+                    if u.startswith('http') and not any(ext in lower_u for ext in ['.jpg','.jpeg','.png','.gif','.pdf','.xml','.mp4','.zip']):
+                        valid_urls.append(u)
+                        
+                if valid_urls:
+                    urls_to_scrape = valid_urls
+                    print(f"Successfully extracted {len(valid_urls)} URLs from sitemap.")
+            else:
+                print(f"Sitemap returned {resp.status_code}. Defaulting to homepage.")
+        except Exception as e:
+            print(f"Sitemap parsing failed: {e}. Defaulting to homepage only.")
+            
+        # Ensure unique, cap at 30 to prevent massive timeouts
+        urls_to_scrape = list(dict.fromkeys(urls_to_scrape))[:30]
+        
+        # 3. Scrape all extracted URLs sequentially via Jina
+        print(f"Scraping up to {len(urls_to_scrape)} pages using Jina AI...")
+        compiled_website_text = ""
+        
+        for idx, u in enumerate(urls_to_scrape):
+            try:
+                jina_url = "https://r.jina.ai/" + u
+                print(f"  [{idx+1}/{len(urls_to_scrape)}] Scraping {u}...")
+                jina_resp = requests.get(jina_url, timeout=20)
+                if jina_resp.status_code == 200:
+                    compiled_website_text += f"\n\n======================\n--- PAGE: {u} ---\n======================\n\n{jina_resp.text}\n"
+            except Exception as e:
+                print(f"  FAILED to scrape {u}: {e}")
+                
+        if not compiled_website_text.strip():
+            raise Exception("No content could be extracted from the website.")
+            
+        # 4. Call Gemini to synthesize
         client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
         
-        prompt = f"""You are a master brand strategist. Analyze this homepage HTML:
+        prompt = f"""You are a master brand strategist. I have used a web-crawler to extract the entire text content of this client's website.
         
-{html_content[:150000]}
-
-Generate 3 rigid pieces of Markdown context based ONLY on the brand's current identity. 
+Read through their massive website context blob below, and generate 3 rigid pieces of context based ONLY on their current brand identity and facts. 
 Format your response as pure JSON matching this exact structure:
 {{
   "brand-voice": "...",
   "uvp": "...",
   "target-keywords": "..."
 }}
+
+WEBSITE CONTEXT:
+{compiled_website_text[:700000]}
 """
+        print("Sending large website packet to Gemini for JSON extraction...")
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt,
@@ -376,10 +427,13 @@ Format your response as pure JSON matching this exact structure:
         raw_text = response.text.strip()
         if raw_text.startswith("```json"):
             raw_text = raw_text[7:-3]
+        elif raw_text.startswith("```"):
+            raw_text = raw_text[3:-3]
+            
+        context_data = json.loads(raw_text.strip())
         
-        context_data = json.loads(raw_text)
-        
-        # 4. Upsert into database efficiently
+        # 5. Upsert into database efficiently
+        print("Saving JSON Contexts to DB...")
         for ctx_type, markdown_content in context_data.items():
             supabase.table("brand_contexts").upsert({
                 "brand_id": brand_id,
@@ -387,11 +441,19 @@ Format your response as pure JSON matching this exact structure:
                 "content_markdown": markdown_content
             }, on_conflict="brand_id,context_type").execute()
             
-        # 5. Success
+        print("Saving Master Website Blob to DB...")
+        supabase.table("brand_contexts").upsert({
+            "brand_id": brand_id,
+            "context_type": "master_brand_knowledge",
+            "content_markdown": compiled_website_text
+        }, on_conflict="brand_id,context_type").execute()
+            
+        # 6. Success
         supabase.table("brands").update({"context_status": "ready"}).eq("id", brand_id).execute()
         
         return {"success": True, "brand_id": brand_id}
     except Exception as e:
+        print(f"CRITICAL ERROR generating brand context: {e}")
         # Revert status on failure
         supabase.table("brands").update({"context_status": "missing"}).eq("id", brand_id).execute()
         return {"error": str(e)}
