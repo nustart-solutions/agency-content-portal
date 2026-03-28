@@ -5,6 +5,7 @@ import CreateGroupModal from './CreateGroupModal'
 import CreateSubgroupModal from './CreateSubgroupModal'
 import CreateCampaignModal from './CreateCampaignModal'
 import AddBrandContextModal from './AddBrandContextModal'
+import EditBrandContextModal from './EditBrandContextModal'
 
 export default async function BrandDashboardPage({
   params
@@ -100,6 +101,7 @@ export default async function BrandDashboardPage({
                 <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.5rem' }}>
                   Updated: {new Date(ctx.created_at).toLocaleDateString()}
                 </span>
+                <EditBrandContextModal brandId={brandId} context={ctx} />
               </div>
             ))}
           </div>
