@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { addBrandContext } from './actions'
+import SimpleMarkdownEditor from './SimpleMarkdownEditor'
 
 export default function EditBrandContextModal({ brandId, context }: { brandId: string, context: any }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -37,8 +38,8 @@ export default function EditBrandContextModal({ brandId, context }: { brandId: s
       </button>
 
       {isOpen && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}>
-          <div className="modal-content glass-panel" style={{ width: '800px', maxWidth: '95vw', maxHeight: '95vh', overflowY: 'auto' }}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}>
+          <div className="modal-content glass-panel" style={{ width: '700px', maxWidth: '90vw', maxHeight: '95vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h2>Edit Document: {context.context_type}</h2>
               <button type="button" className="close-button" onClick={() => setIsOpen(false)}>&times;</button>
@@ -50,20 +51,16 @@ export default function EditBrandContextModal({ brandId, context }: { brandId: s
               {/* Hidden input to ensure the context_type remains the exact same for the UPSERT constraint */}
               <input type="hidden" name="context_type" value={context.context_type} />
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 500 }}>
-                  Editing Raw Markdown Content
-                </label>
-                <textarea 
-                  name="content_markdown" 
-                  required 
-                  rows={25}
-                  defaultValue={context.content_markdown}
-                  style={{ width: '100%', padding: '1rem', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', borderRadius: '8px', color: 'white', fontFamily: 'monospace', fontSize: '0.9rem', lineHeight: '1.5' }}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>Context Details (Markdown Supported)</label>
+                <SimpleMarkdownEditor 
+                  name="content_markdown"
+                  initialValue={context.content_markdown}
+                  rows={18}
                 />
               </div>
 
-              <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
                 <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary" style={{ padding: '0.6rem 1.2rem', background: 'transparent', border: '1px solid var(--border)', color: 'white', borderRadius: '6px', cursor: 'pointer' }}>
                   Cancel
                 </button>

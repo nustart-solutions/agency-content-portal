@@ -49,7 +49,7 @@ export default function AddBrandContextModal({ brandId }: { brandId: string }) {
       </button>
 
       {isOpen && (
-        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}>
+        <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}>
           <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '90vw' }}>
             <div className="modal-header">
               <h2>Add Brand Context</h2>
@@ -73,23 +73,16 @@ export default function AddBrandContextModal({ brandId }: { brandId: string }) {
                 </select>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                  Raw Markdown Content
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--muted)', fontWeight: 400 }}>
-                    Formatting (like **bold** or [links](url)) will be perfectly parsed by the AI.
-                  </span>
-                </label>
-                <textarea 
-                  name="content_markdown" 
-                  required 
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>Context Details (Markdown Supported)</label>
+                <SimpleMarkdownEditor 
+                  name="content_markdown"
+                  placeholder="Paste or type the rich context here. You can use the buttons above to format the text!"
                   rows={15}
-                  placeholder="# SEO Guidelines&#10;&#10;1. Ensure focus keyword is in the header..."
-                  style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: '6px', color: 'white', fontFamily: 'monospace' }}
                 />
               </div>
 
-              <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
                 <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary" style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px solid var(--border)', color: 'white', borderRadius: '6px', cursor: 'pointer' }}>
                   Cancel
                 </button>
