@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { addBrandContext } from './actions'
+import SimpleMarkdownEditor from './SimpleMarkdownEditor'
 
 const CONTEXT_TYPES = [
   'brand-voice',
