@@ -18,7 +18,7 @@ export default function Home() {
           <div className="input-group">
             <div className="password-header">
               <label htmlFor="password">Password</label>
-              <a href="#" className="forgot-link">Forgot password?</a>
+              <a href="/forgot-password" className="forgot-link">Forgot password?</a>
             </div>
             <input type="password" id="password" placeholder="••••••••" />
           </div>
