@@ -6,11 +6,12 @@ from typing import Dict, Any
 image = (
     modal.Image.debian_slim()
     .pip_install(
+        "fastapi",
         "supabase", 
         "google-genai", 
-        "requests", 
-        "git+https://github.com/TheCraigHewitt/seomachine.git" # As requested per user specs
+        "requests"
     )
+    .add_local_dir("execution/seomachine", remote_path="/root/seomachine")
 )
 
 app = modal.App("content-portal-execution")
@@ -85,6 +86,7 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
         
         supabase.table("assets").update({
             "content_markdown": content,
+            "compiled_prompt": prompt,
             "status": new_status
         }).eq("id", asset_id).execute()
         

@@ -77,9 +77,9 @@ export async function triggerGenerateAsset(assetId: string, campaignId: string) 
 
   // Step 2: Trigger Modal Webhook asynchronously (Fire and forget)
   // In production, this fetch would hit your Modal Layer 3 endpoint.
-  const modalUrl = process.env.MODAL_WEBHOOK_URL || 'https://example.modal.run'
+  const modalUrl = process.env.MODAL_GENERATE_ASSET_URL || 'https://example.modal.run'
   try {
-    fetch(`${modalUrl}/generate_asset`, {
+    fetch(modalUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -121,9 +121,9 @@ export async function submitExternalAsset(assetId: string, campaignId: string, f
   }
 
   // Optional: Trigger Modal to scrape/QA the submitted URL
-  const modalUrl = process.env.MODAL_WEBHOOK_URL || 'https://example.modal.run'
+  const modalUrl = process.env.MODAL_INGEST_ASSET_URL || 'https://example.modal.run'
   try {
-    fetch(`${modalUrl}/ingest_client_asset`, {
+    fetch(modalUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ asset_id: assetId, url: externalUrl })
@@ -149,9 +149,9 @@ export async function triggerPublishAsset(assetId: string, campaignId: string) {
   }
 
   // Trigger Modal Webhook asynchronously (Fire and forget) to actually publish
-  const modalUrl = process.env.MODAL_WEBHOOK_URL || 'https://example.modal.run'
+  const modalUrl = process.env.MODAL_PUBLISH_ASSET_URL || 'https://example.modal.run'
   try {
-    fetch(`${modalUrl}/publish_asset`, {
+    fetch(modalUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ asset_id: assetId })
