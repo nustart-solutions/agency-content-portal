@@ -69,7 +69,6 @@ export default async function AssetPage({
                 Status: {asset.status}
               </span>
             </div>
-            </div>
           </div>
           {asset.google_doc_url && (
             <a 
