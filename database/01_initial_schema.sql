@@ -44,8 +44,10 @@ create table public.assets (
   id uuid primary key default gen_random_uuid(),
   campaign_id uuid references public.campaigns(id) on delete cascade not null,
   title text not null,
-  asset_type text not null, -- E.g., 'anchor_article', 'social_post', 'email_newsletter'
-  status text not null default 'draft', -- 'draft', 'awaiting_approval', 'approved', 'sync_failed'
+  asset_type text not null, -- 'blog_post', 'landing_page', 'faq', 'gmb_post', etc
+  channel text not null, -- 'website_post', 'gmb_post', 'linkedin', etc
+  is_anchor boolean not null default false,
+  status text not null default 'draft', -- 'draft', 'in_progress', 'review', 'approved', 'published', etc
   google_doc_url text,
   wordpress_post_id text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null

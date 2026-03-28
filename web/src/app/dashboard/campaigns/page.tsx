@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import Link from 'next/link'
 
 export default async function CampaignsPage() {
   const supabase = await createClient()
@@ -30,14 +31,16 @@ export default async function CampaignsPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {campaigns?.map(camp => (
-                <div key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
-                  <div>
-                    <strong style={{ display: 'block' }}>{camp.name}</strong>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
-                      Brand: {camp.campaign_subgroups?.campaign_groups?.brands?.name || 'Unknown'} | Group: {camp.campaign_subgroups?.campaign_groups?.name || 'Unknown'} | Subgroup: {camp.campaign_subgroups?.name || 'Unknown'}
-                    </span>
+                <Link key={camp.id} href={`/dashboard/campaigns/${camp.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}>
+                    <div>
+                      <strong style={{ display: 'block' }}>{camp.name}</strong>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+                        Brand: {camp.campaign_subgroups?.campaign_groups?.brands?.name || 'Unknown'} | Group: {camp.campaign_subgroups?.campaign_groups?.name || 'Unknown'} | Subgroup: {camp.campaign_subgroups?.name || 'Unknown'}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
