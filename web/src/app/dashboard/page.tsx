@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import { logout } from '@/app/login/actions'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -11,28 +10,18 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', padding: '2rem' }}>
-        <h2>Agency Portal</h2>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Logged in as {user.email}</span>
-          <form action={logout}>
-            <button type="submit" style={{ background: 'var(--glass-border)', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', border: '1px solid var(--glass-border)' }}>
-              Sign Out
-            </button>
-          </form>
-        </div>
+    <div style={{ padding: '2.5rem' }}>
+      <header style={{ marginBottom: '2rem' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 600, letterSpacing: '-0.025em' }}>Dashboard Overview</h1>
+        <p style={{ color: 'var(--muted)', marginTop: '0.5rem' }}>View global metrics and recent activity across your agency.</p>
       </header>
 
-      <main style={{ padding: '0 2rem' }}>
-        <div style={{ background: 'var(--glass)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '2rem' }}>
-          <h3>Welcome to your Dashboard</h3>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '1rem' }}>
-            We've securely verified your session using Supabase Server-Side authentication. 
-            From here, you will manage your Brands, Campaign Groups, and AI generated content.
-          </p>
-        </div>
-      </main>
+      <div className="glass-panel" style={{ padding: '2rem', marginTop: '2rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 500, marginBottom: '1rem' }}>Welcome aboard, {user.email}</h3>
+        <p style={{ color: 'var(--muted)', lineHeight: '1.6' }}>
+          This is the central command center for your entire Content CRM. Because we built your portal using strict architectural layers, this frontend only serves as a beautiful interactive viewer for the data securely managed by Supabase.
+        </p>
+      </div>
     </div>
   )
 }
