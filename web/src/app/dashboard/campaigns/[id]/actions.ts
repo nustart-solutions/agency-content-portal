@@ -56,14 +56,16 @@ export async function updateAssetStatus(assetId: string, campaignId: string, new
 export async function triggerGenerateAsset(assetId: string, campaignId: string) {
   const supabase = await createClient()
 
-  // Find the brand to check approval settings (stub for Modal payload later)
+  // Find the brand to check approval settings and extract names for Google Drive folder taxonomy
   const { data: assetData } = await supabase
     .from('assets')
-    .select('*, campaigns(campaign_subgroups(campaign_groups(brand_id, brands(requires_approval))))')
+    .select('*, campaigns(name, campaign_subgroups(campaign_groups(brand_id, brands(name, requires_approval))))')
     .eq('id', assetId)
     .single()
 
   const requiresApproval = assetData?.campaigns?.campaign_subgroups?.campaign_groups?.brands?.requires_approval ?? true
+  const brandName = assetData?.campaigns?.campaign_subgroups?.campaign_groups?.brands?.name || 'Unknown Brand'
+  const campaignName = assetData?.campaigns?.name || 'Unknown Campaign'
 
   // Step 1: Optimistically update UI to in_progress
   const { error } = await supabase
@@ -87,7 +89,9 @@ export async function triggerGenerateAsset(assetId: string, campaignId: string) 
         asset_id: assetId,
         requires_approval: requiresApproval,
         title: assetData?.title,
-        asset_type: assetData?.asset_type
+        asset_type: assetData?.asset_type,
+        brand_name: brandName,
+        campaign_name: campaignName
       })
     }).catch(e => console.error("Modal fetch failed (async):", e))
   } catch (err) {

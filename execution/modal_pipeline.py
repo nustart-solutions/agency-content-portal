@@ -140,17 +140,54 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
                 
                 final_html = f"<html><body>{meta_table}{html_body}</body></html>"
                 
+                # Setup Folders for Shared Drive
+                root_drive_id = os.environ.get("ROOT_DRIVE_ID")
+                parent_folder_id = root_drive_id
+                brand_name = data.get("brand_name", "").strip()
+                campaign_name = data.get("campaign_name", "").strip()
+                
+                if root_drive_id and brand_name:
+                    print(f"Organizing inside Shared Drive {root_drive_id} for Brand: {brand_name}")
+                    
+                    def get_or_create_folder(f_name, p_id):
+                        if not p_id: return None
+                        safe_name = f_name.replace("'", "\\'")
+                        query = f"name='{safe_name}' and '{p_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+                        res = drive_service.files().list(q=query, spaces='drive', supportsAllDrives=True, includeItemsFromAllDrives=True).execute()
+                        if res.get('files'):
+                            return res['files'][0]['id']
+                            
+                        # Create folder
+                        f_metadata = {'name': f_name, 'mimeType': 'application/vnd.google-apps.folder', 'parents': [p_id]}
+                        folder = drive_service.files().create(body=f_metadata, fields='id', supportsAllDrives=True).execute()
+                        return folder.get('id')
+                    
+                    try:
+                        brand_folder_id = get_or_create_folder(brand_name, root_drive_id)
+                        if campaign_name:
+                            camp_folder_id = get_or_create_folder(campaign_name, brand_folder_id)
+                            parent_folder_id = camp_folder_id
+                        else:
+                            parent_folder_id = brand_folder_id
+                    except Exception as e:
+                        print(f"Failed to create Google Drive Subfolders, falling back: {e}")
+                        parent_folder_id = root_drive_id
+                
                 file_metadata = {
                     'name': f"{asset['title']} - {asset['asset_type'].replace('_', ' ').title()}",
                     'mimeType': 'application/vnd.google-apps.document'
                 }
+                
+                if parent_folder_id:
+                    file_metadata['parents'] = [parent_folder_id]
                 
                 media = MediaIoBaseUpload(io.BytesIO(final_html.encode('utf-8')), mimetype='text/html', resumable=True)
                 
                 file = drive_service.files().create(
                     body=file_metadata,
                     media_body=media,
-                    fields='id, webViewLink'
+                    fields='id, webViewLink',
+                    supportsAllDrives=True if root_drive_id else False
                 ).execute()
                 
                 doc_id = file.get('id')
@@ -159,7 +196,8 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
                 drive_service.permissions().create(
                     fileId=doc_id,
                     body={'type': 'anyone', 'role': 'writer'},
-                    fields='id'
+                    fields='id',
+                    supportsAllDrives=True if root_drive_id else False
                 ).execute()
                 
                 print(f"Successfully generated Google Doc: {google_doc_url}")
