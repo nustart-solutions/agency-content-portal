@@ -9,6 +9,17 @@ export default async function DashboardPage() {
     return redirect('/')
   }
 
+  // Check role to redirect brand users straight to their dashboard
+  const { data: roleData } = await supabase
+    .from('user_roles')
+    .select('role, brand_id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (roleData?.role === 'brand_user' && roleData?.brand_id) {
+    return redirect(`/dashboard/brands/${roleData.brand_id}`)
+  }
+
   return (
     <div style={{ padding: '2.5rem' }}>
       <header style={{ marginBottom: '2rem' }}>

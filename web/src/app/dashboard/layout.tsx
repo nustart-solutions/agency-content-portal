@@ -7,6 +7,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  let userRole = null
+  let userBrandId = null
+
+  if (user) {
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role, brand_id')
+      .eq('user_id', user.id)
+      .single()
+      
+    if (roleData) {
+      userRole = roleData.role
+      userBrandId = roleData.brand_id
+    }
+  }
+
   return (
     <div className="dashboard-layout">
       {/* Persistent Glass Sidebar */}
@@ -17,8 +33,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
         
         <nav className="sidebar-nav">
-          <Link href="/dashboard" className="nav-link">Overview</Link>
-          <Link href="/dashboard/organizations" className="nav-link">Organizations</Link>
+          {userRole !== 'brand_user' ? (
+            <>
+              <Link href="/dashboard" className="nav-link">Overview</Link>
+              <Link href="/dashboard/organizations" className="nav-link">Organizations</Link>
+            </>
+          ) : (
+            <>
+              {userBrandId && <Link href={`/dashboard/brands/${userBrandId}`} className="nav-link">My Brand Overview</Link>}
+            </>
+          )}
           <Link href="/dashboard/campaigns" className="nav-link">Campaigns</Link>
         </nav>
 
