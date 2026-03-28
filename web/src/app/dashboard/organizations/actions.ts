@@ -14,8 +14,7 @@ export async function createOrganization(formData: FormData) {
     .insert([{ name }])
 
   if (orgError) {
-    // If the user isn't physically an agency_admin in user_roles, RLS will throw a security violation here!
-    return { error: 'Security Violation: You do not have Agency Admin privileges to insert Organizations. (RLS Blocked)' }
+    return { error: `Database Error: ${orgError.message} (Code: ${orgError.code})` }
   }
 
   // Force the layout to instantly fetch the fresh database results without refreshing the browser!
