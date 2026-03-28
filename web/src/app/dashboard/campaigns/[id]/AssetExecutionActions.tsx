@@ -65,7 +65,7 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
           {status === 'in_progress' ? (
             <>
               <button 
-                onClick={() => startTransition(() => resetAssetToDraft(assetId, campaignId))}
+                onClick={() => startTransition(async () => { await resetAssetToDraft(assetId, campaignId) })}
                 disabled={isPending}
                 style={{ 
                   background: 'transparent', border: '1px solid var(--border)', color: 'var(--muted)',
@@ -75,7 +75,7 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
                 Reset to Draft
               </button>
               <button 
-                onClick={() => startTransition(() => deleteAsset(assetId, campaignId))}
+                onClick={() => startTransition(async () => { await deleteAsset(assetId, campaignId) })}
                 disabled={isPending}
                 style={{ 
                   background: 'transparent', border: '1px solid #ff4444', color: '#ff4444',
@@ -109,7 +109,7 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
                 Upload
               </button>
               <button 
-                onClick={() => startTransition(() => deleteAsset(assetId, campaignId))}
+                onClick={() => startTransition(async () => { await deleteAsset(assetId, campaignId) })}
                 disabled={isPending}
                 style={{ 
                   background: 'transparent', border: 'none', color: '#ff4444',
