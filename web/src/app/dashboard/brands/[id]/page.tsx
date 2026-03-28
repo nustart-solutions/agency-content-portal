@@ -98,7 +98,7 @@ export default async function BrandDashboardPage({
       {/* Brand Intelligence Context Section */}
       <div style={{ marginTop: '2.5rem', marginBottom: '2.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Brand Intelligence</h2>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Knowledge Bank</h2>
           <AddBrandContextModal brandId={brandId} />
         </div>
         

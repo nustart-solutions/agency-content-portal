@@ -40,10 +40,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </>
           ) : (
             <>
-              {userBrandId && <Link href={`/dashboard/brands/${userBrandId}`} className="nav-link">My Brand Overview</Link>}
+              {userBrandId && <Link href={`/dashboard/brands/${userBrandId}`} className="nav-link">My Brand Dashboard</Link>}
             </>
           )}
-          <Link href="/dashboard/campaigns" className="nav-link">Campaigns</Link>
+
+          <div style={{ marginTop: '1.5rem', marginBottom: '0.5rem', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.05em', padding: '0 1rem', fontWeight: 600 }}>Global Views</div>
+          
+          <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">📅 Global Calendar</Link>
+          <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">📄 All Assets</Link>
+          <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">🖼️ Image Bank</Link>
+          <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">📊 Tracking & Reports</Link>
         </nav>
 
         {/* User Card & Settings */}
