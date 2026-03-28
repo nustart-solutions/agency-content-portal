@@ -6,7 +6,7 @@ export default async function CampaignsPage() {
   // Fetches all campaigns across all authorized brands via RLS
   const { data: campaigns, error } = await supabase
     .from('campaigns')
-    .select('*, brands(name)')
+    .select('*, campaign_subgroups(name, campaign_groups(name, brands(name)))')
     .order('created_at', { ascending: false })
 
   return (
@@ -25,7 +25,7 @@ export default async function CampaignsPage() {
         <div className="glass-panel" style={{ padding: '2rem' }}>
           {campaigns?.length === 0 ? (
             <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '2rem 0' }}>
-              No campaigns running yet. You must create an Organization and a Brand first before launching a Campaign.
+              No campaigns running yet. You must create an Organization, Brand, Campaign Group, and Subgroup first before launching a Campaign.
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -33,11 +33,10 @@ export default async function CampaignsPage() {
                 <div key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
                   <div>
                     <strong style={{ display: 'block' }}>{camp.name}</strong>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>Brand: {camp.brands?.name}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+                      Brand: {camp.campaign_subgroups?.campaign_groups?.brands?.name || 'Unknown'} | Group: {camp.campaign_subgroups?.campaign_groups?.name || 'Unknown'} | Subgroup: {camp.campaign_subgroups?.name || 'Unknown'}
+                    </span>
                   </div>
-                  <span style={{ padding: '0.25rem 0.75rem', borderRadius: '1rem', fontSize: '0.8rem', background: 'rgba(139, 92, 246, 0.1)', color: 'var(--primary)' }}>
-                    {camp.status}
-                  </span>
                 </div>
               ))}
             </div>

@@ -80,14 +80,14 @@ create policy "Brand users can see mapped groups" on public.campaign_groups
   );
 
 -- ==========================================
--- 6. Campaigns Table
+-- 6. Campaign Subgroups Table
 -- ==========================================
-drop policy if exists "Agency admins full access to campaigns" on public.campaigns;
-create policy "Agency admins full access to campaigns" on public.campaigns 
+drop policy if exists "Agency admins full access to subgroups" on public.campaign_subgroups;
+create policy "Agency admins full access to subgroups" on public.campaign_subgroups 
   for all using (public.is_agency_admin(auth.uid()));
 
-drop policy if exists "Org admins can see child campaigns" on public.campaigns;
-create policy "Org admins can see child campaigns" on public.campaigns 
+drop policy if exists "Org admins can see child subgroups" on public.campaign_subgroups;
+create policy "Org admins can see child subgroups" on public.campaign_subgroups 
   for select using (
     campaign_group_id in (
       select cg.id from public.campaign_groups cg
@@ -97,8 +97,8 @@ create policy "Org admins can see child campaigns" on public.campaigns
     )
   );
 
-drop policy if exists "Brand users can see mapped campaigns" on public.campaigns;
-create policy "Brand users can see mapped campaigns" on public.campaigns 
+drop policy if exists "Brand users can see mapped subgroups" on public.campaign_subgroups;
+create policy "Brand users can see mapped subgroups" on public.campaign_subgroups 
   for select using (
     campaign_group_id in (
       select cg.id from public.campaign_groups cg
@@ -107,7 +107,36 @@ create policy "Brand users can see mapped campaigns" on public.campaigns
   );
 
 -- ==========================================
--- 7. Assets Table
+-- 7. Campaigns Table
+-- ==========================================
+drop policy if exists "Agency admins full access to campaigns" on public.campaigns;
+create policy "Agency admins full access to campaigns" on public.campaigns 
+  for all using (public.is_agency_admin(auth.uid()));
+
+drop policy if exists "Org admins can see child campaigns" on public.campaigns;
+create policy "Org admins can see child campaigns" on public.campaigns 
+  for select using (
+    campaign_subgroup_id in (
+      select csg.id from public.campaign_subgroups csg
+      join public.campaign_groups cg on csg.campaign_group_id = cg.id
+      join public.brands b on cg.brand_id = b.id
+      join public.user_roles u on b.organization_id = u.organization_id
+      where u.user_id = auth.uid() and u.role = 'org_admin'
+    )
+  );
+
+drop policy if exists "Brand users can see mapped campaigns" on public.campaigns;
+create policy "Brand users can see mapped campaigns" on public.campaigns 
+  for select using (
+    campaign_subgroup_id in (
+      select csg.id from public.campaign_subgroups csg
+      join public.campaign_groups cg on csg.campaign_group_id = cg.id
+      where cg.brand_id in (select brand_id from public.user_roles where user_id = auth.uid() and role = 'brand_user')
+    )
+  );
+
+-- ==========================================
+-- 8. Assets Table
 -- ==========================================
 drop policy if exists "Agency admins full access to assets" on public.assets;
 create policy "Agency admins full access to assets" on public.assets 
@@ -118,7 +147,8 @@ create policy "Org admins can see child assets" on public.assets
   for select using (
     campaign_id in (
       select c.id from public.campaigns c
-      join public.campaign_groups cg on c.campaign_group_id = cg.id
+      join public.campaign_subgroups csg on c.campaign_subgroup_id = csg.id
+      join public.campaign_groups cg on csg.campaign_group_id = cg.id
       join public.brands b on cg.brand_id = b.id
       join public.user_roles u on b.organization_id = u.organization_id
       where u.user_id = auth.uid() and u.role = 'org_admin'
@@ -130,7 +160,8 @@ create policy "Brand users can see mapped assets" on public.assets
   for select using (
     campaign_id in (
       select c.id from public.campaigns c
-      join public.campaign_groups cg on c.campaign_group_id = cg.id
+      join public.campaign_subgroups csg on c.campaign_subgroup_id = csg.id
+      join public.campaign_groups cg on csg.campaign_group_id = cg.id
       where cg.brand_id in (select brand_id from public.user_roles where user_id = auth.uid() and role = 'brand_user')
     )
   );

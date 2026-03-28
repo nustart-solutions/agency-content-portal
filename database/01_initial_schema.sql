@@ -14,26 +14,34 @@ create table public.brands (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 3. Campaign Groups (Quarterly/Thematic collections)
+-- 4. Campaign Groups (Broad initiatives)
 create table public.campaign_groups (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   brand_id uuid references public.brands(id) on delete cascade not null,
   name text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 4. Campaigns (Specific initiatives)
-create table public.campaigns (
-  id uuid primary key default uuid_generate_v4(),
+-- 4b. Campaign Subgroups (Nested sub-initiatives)
+create table public.campaign_subgroups (
+  id uuid primary key default gen_random_uuid(),
   campaign_group_id uuid references public.campaign_groups(id) on delete cascade not null,
+  name text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 5. Campaigns (Specific, actionable runs)
+create table public.campaigns (
+  id uuid primary key default gen_random_uuid(),
+  campaign_subgroup_id uuid references public.campaign_subgroups(id) on delete cascade not null,
   name text not null,
   target_publish_date timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 5. Assets (The actual content generated)
+-- 6. Assets (The actual content pieces: Anchors, Social, etc)
 create table public.assets (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   campaign_id uuid references public.campaigns(id) on delete cascade not null,
   title text not null,
   asset_type text not null, -- E.g., 'anchor_article', 'social_post', 'email_newsletter'
