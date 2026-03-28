@@ -106,14 +106,13 @@ export default async function AssetPage({
           )}
         </div>
 
-        {/* AI Transparency Log (SUPER ADMIN ONLY) */}
-        {userRole === 'agency_admin' && (
+        {/* AI Transparency Log */}
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.03)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', borderBottom: '1px solid rgba(139, 92, 246, 0.2)', paddingBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '1.2rem' }}>🔍</span> Execution Log
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-              This panel is exclusively visible to Agency Admins. It displays the exact synthesized prompt passed to the modal pipeline for validation and debugging.
+              This panel displays the exact synthesized prompt passed to the modal pipeline for validation and debugging.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -144,7 +143,6 @@ export default async function AssetPage({
                </div>
             </div>
           </div>
-        )}
 
       </div>
     </div>
