@@ -9,7 +9,10 @@ image = (
         "fastapi",
         "supabase", 
         "google-genai", 
-        "requests"
+        "requests",
+        "google-api-python-client",
+        "google-auth",
+        "markdown"
     )
     .add_local_dir("execution/seomachine", remote_path="/root/seomachine")
 )
@@ -21,7 +24,10 @@ app = modal.App("content-portal-execution")
 # ==========================================
 @app.function(
     image=image,
-    secrets=[modal.Secret.from_name("content-portal-secrets")],
+    secrets=[
+        modal.Secret.from_name("content-portal-secrets"),
+        modal.Secret.from_name("googlecloud-secret")
+    ],
     timeout=600 # 10 mins execution for heavy AI tasks
 )
 @modal.web_endpoint(method="POST")
@@ -84,14 +90,83 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
         )
         content = response.text
         
+        # 4.1 Convert to Google Doc (if credentials present)
+        import markdown
+        from google.oauth2 import service_account
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaIoBaseUpload
+        import io
+        import json
+        from datetime import datetime
+        
+        google_doc_url = None
+        # Handle typo in case it's service_accout_json or service_account_json
+        service_account_info_str = os.environ.get("service_accout_json") or os.environ.get("service_account_json")
+        
+        if service_account_info_str:
+            try:
+                creds_info = json.loads(service_account_info_str)
+                creds = service_account.Credentials.from_service_account_info(
+                    creds_info, 
+                    scopes=['https://www.googleapis.com/auth/drive']
+                )
+                drive_service = build('drive', 'v3', credentials=creds)
+                
+                html_body = markdown.markdown(content)
+                current_date = datetime.now().strftime("%Y-%m-%d")
+                
+                meta_table = f"""
+                <table border="1" style="border-collapse: collapse; width: 100%; font-family: sans-serif;">
+                  <tr><th style="padding: 8px; text-align: left; background-color: #f2f2f2;">Meta</th><th style="padding: 8px; text-align: left; background-color: #f2f2f2;">Details</th></tr>
+                  <tr><td style="padding: 8px;"><b>Campaign ID</b></td><td style="padding: 8px;">{asset['campaigns']['id']}</td></tr>
+                  <tr><td style="padding: 8px;"><b>Channel</b></td><td style="padding: 8px;">{asset['channel']}</td></tr>
+                  <tr><td style="padding: 8px;"><b>Date Created</b></td><td style="padding: 8px;">{current_date}</td></tr>
+                </table>
+                <br><br>
+                """
+                
+                final_html = f"<html><body>{meta_table}{html_body}</body></html>"
+                
+                file_metadata = {
+                    'name': f"{asset['title']} - {asset['asset_type'].replace('_', ' ').title()}",
+                    'mimeType': 'application/vnd.google-apps.document'
+                }
+                
+                media = MediaIoBaseUpload(io.BytesIO(final_html.encode('utf-8')), mimetype='text/html', resumable=True)
+                
+                file = drive_service.files().create(
+                    body=file_metadata,
+                    media_body=media,
+                    fields='id, webViewLink'
+                ).execute()
+                
+                doc_id = file.get('id')
+                google_doc_url = file.get('webViewLink')
+                
+                drive_service.permissions().create(
+                    fileId=doc_id,
+                    body={'type': 'anyone', 'role': 'writer'},
+                    fields='id'
+                ).execute()
+                
+                print(f"Successfully generated Google Doc: {google_doc_url}")
+            except Exception as e:
+                print(f"FAILED to upload to Google Docs: {str(e)}")
+        else:
+            print("Skipped Google Docs generation (GOOGLE_SERVICE_ACCOUNT_JSON not provided)")
+        
         # 5. Route the Asset Status & Save
         new_status = "review" if requires_approval else "published"
         
-        supabase.table("assets").update({
+        update_payload = {
             "content_markdown": content,
             "compiled_prompt": prompt,
             "status": new_status
-        }).eq("id", asset_id).execute()
+        }
+        if google_doc_url:
+            update_payload["google_doc_url"] = google_doc_url
+            
+        supabase.table("assets").update(update_payload).eq("id", asset_id).execute()
         
         # 6. Auto-publish skip
         if not requires_approval:

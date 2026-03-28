@@ -88,13 +88,18 @@ export default async function CampaignPage({
                         {asset.title}
                       </Link>
                     </h3>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem', display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.asset_type.replace('_', ' ').toUpperCase()}
                       </span>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.channel.replace('_', ' ').toUpperCase()}
                       </span>
+                      {asset.google_doc_url && (
+                        <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -129,13 +134,18 @@ export default async function CampaignPage({
                         {asset.title}
                       </Link>
                     </h3>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem', display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.asset_type.replace('_', ' ').toUpperCase()}
                       </span>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.channel.replace('_', ' ').toUpperCase()}
                       </span>
+                      {asset.google_doc_url && (
+                        <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
