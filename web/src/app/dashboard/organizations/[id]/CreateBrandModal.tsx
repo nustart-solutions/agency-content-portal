@@ -31,68 +31,60 @@ export default function CreateBrandModal({ organizationId }: CreateBrandModalPro
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="btn-primary"
+        className="btn btn-primary"
       >
-        + Add Brand
+        + New Brand
       </button>
 
       {isOpen && (
-        <div className="modal-overlay">
+        <div className="modal-backdrop">
           <div className="modal-content glass-panel">
-            <div className="modal-header">
-              <h2>New Brand</h2>
-              <button 
-                className="modal-close"
-                onClick={() => setIsOpen(false)}
-              >
-                &times;
-              </button>
-            </div>
+            <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>Create Brand</h3>
             
-            <form action={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="name">Brand Name</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  required
+            {error && (
+              <div style={{ color: '#ef4444', marginBottom: '1.5rem', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                {error}
+              </div>
+            )}
+            
+            <form action={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                  Brand Name
+                </label>
+                <input 
+                  type="text" 
+                  name="name" 
+                  required 
                   placeholder="e.g. Acme Shoes"
-                  className="form-input"
+                  style={{
+                    width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
+                    background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
+                  }}
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="logo_url">Logo URL (Optional)</label>
-                <input
-                  type="url"
-                  id="logo_url"
-                  name="logo_url"
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                  Logo URL (Optional)
+                </label>
+                <input 
+                  type="url" 
+                  name="logo_url" 
                   placeholder="https://example.com/logo.png"
-                  className="form-input"
+                  style={{
+                    width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
+                    background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
+                  }}
                 />
               </div>
 
-              {error && (
-                <div className="error-message">
-                  {error}
-                </div>
-              )}
-
-              <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="btn-secondary"
-                  onClick={() => setIsOpen(false)}
-                >
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button type="button" onClick={() => setIsOpen(false)} className="btn" style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--foreground)' }}>
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
-                  className="btn-primary"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Creating...' : 'Create Brand'}
+                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                  {isSubmitting ? 'Creating...' : 'Create'}
                 </button>
               </div>
             </form>
