@@ -161,6 +161,19 @@ a {
   border-radius: 1rem;
 }
 
+/* Form Inputs */
+.form-input {
+  color: var(--foreground);
+  background: transparent;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--primary) !important;
+}
+.form-input option {
+  color: initial;
+}
+
 /* Common Section Layouts */
 .section-container {
   padding: 2.5rem;
