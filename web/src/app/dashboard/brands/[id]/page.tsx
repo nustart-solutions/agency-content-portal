@@ -1,0 +1,130 @@
+import { createClient } from '@/utils/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import CreateGroupModal from './CreateGroupModal'
+import CreateSubgroupModal from './CreateSubgroupModal'
+import CreateCampaignModal from './CreateCampaignModal'
+
+export default async function BrandDashboardPage({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id: brandId } = await params
+  const supabase = await createClient()
+
+  // 1. Fetch Brand & verify access
+  const { data: brand, error: brandError } = await supabase
+    .from('brands')
+    .select('*, organizations(id, name)')
+    .eq('id', brandId)
+    .single()
+
+  if (brandError || !brand) {
+    redirect('/dashboard/organizations')
+  }
+
+  // 2. Fetch entire 3-tier deep taxonomy in one highly optimized query!
+  const { data: groups } = await supabase
+    .from('campaign_groups')
+    .select(`
+      *,
+      campaign_subgroups (
+        *,
+        campaigns (
+          *,
+          assets ( count )
+        )
+      )
+    `)
+    .eq('brand_id', brandId)
+    .order('created_at', { ascending: false })
+
+  // Sort nested items in JavaScript to ensure consistent chronological display
+  const sortedGroups = groups?.map((g: any) => {
+    return {
+      ...g,
+      campaign_subgroups: (g.campaign_subgroups || [])
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .map((sg: any) => ({
+          ...sg,
+          campaigns: (sg.campaigns || [])
+            .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        }))
+    }
+  }) || [];
+
+  return (
+    <div className="section-container">
+      <div className="section-header">
+        <div className="breadcrumb">
+          <Link href={`/dashboard/organizations/${brand.organization_id}`} className="back-link">
+            &larr; Back to {brand.organizations?.name || 'Organization'}
+          </Link>
+          <h1 className="page-title">{brand.name} Content Board</h1>
+        </div>
+        <CreateGroupModal brandId={brandId} />
+      </div>
+
+      <p className="section-description">
+        Manage the unified master taxonomy of Groups, Subgroups, and active Campaigns for this brand.
+      </p>
+
+      {sortedGroups.length === 0 ? (
+        <div className="empty-state glass-panel">
+          <h3>No Campaign Groups Found</h3>
+          <p>Get started by building your first top-level initiative group.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '2rem' }}>
+          {sortedGroups.map((group: any) => (
+            <details key={group.id} className="glass-panel group-accordion" open style={{ padding: '1.5rem', borderRadius: '12px' }}>
+              <summary style={{ fontSize: '1.25rem', fontWeight: 600, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Folder: {group.name}</span>
+                <CreateSubgroupModal brandId={brandId} groupId={group.id} />
+              </summary>
+              
+              <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border)' }}>
+                {(!group.campaign_subgroups || group.campaign_subgroups.length === 0) ? (
+                  <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>No subgroups exist yet.</p>
+                ) : (
+                  group.campaign_subgroups.map((subgroup: any) => (
+                    <details key={subgroup.id} open style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <summary style={{ fontSize: '1rem', fontWeight: 500, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>↳ {subgroup.name}</span>
+                        <CreateCampaignModal brandId={brandId} subgroupId={subgroup.id} />
+                      </summary>
+
+                      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {(!subgroup.campaigns || subgroup.campaigns.length === 0) ? (
+                          <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No active campaigns.</p>
+                        ) : (
+                          subgroup.campaigns.map((camp: any) => (
+                            <Link href={`/dashboard/campaigns/${camp.id}`} key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'var(--glass-bg)', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'inherit' }}>
+                              <div>
+                                <strong style={{ display: 'block', marginBottom: '0.25rem' }}>{camp.name}</strong>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                                  Target: {camp.target_publish_date ? new Date(camp.target_publish_date).toLocaleDateString() : 'TBD'}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                                  {camp.assets[0]?.count || 0} Assets
+                                </span>
+                                <span style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>&rarr;</span>
+                              </div>
+                            </Link>
+                          ))
+                        )}
+                      </div>
+                    </details>
+                  ))
+                )}
+              </div>
+            </details>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
