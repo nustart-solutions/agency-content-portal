@@ -152,6 +152,19 @@ a {
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.23);
 }
 
+.btn-secondary {
+  background-color: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--surface);
+  border-color: var(--muted);
+  transform: translateY(-1px);
+}
+
+
 /* Glass panel */
 .glass-panel {
   background: rgba(24, 24, 27, 0.6);

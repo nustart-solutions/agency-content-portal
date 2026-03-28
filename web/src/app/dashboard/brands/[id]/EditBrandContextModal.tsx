@@ -31,8 +31,8 @@ export default function EditBrandContextModal({ brandId, context }: { brandId: s
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="btn-secondary"
-        style={{ width: '100%', marginTop: '1rem', fontSize: '0.85rem', padding: '0.5rem', borderRadius: '6px', cursor: 'pointer' }}
+        className="btn btn-secondary"
+        style={{ width: '100%', marginTop: '1rem', fontSize: '0.85rem', padding: '0.5rem' }}
       >
         View / Edit
       </button>
@@ -60,10 +60,10 @@ export default function EditBrandContextModal({ brandId, context }: { brandId: s
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary" style={{ padding: '0.6rem 1.2rem', background: 'transparent', border: '1px solid var(--border)', color: 'white', borderRadius: '6px', cursor: 'pointer' }}>
+                <button type="button" onClick={() => setIsOpen(false)} className="btn btn-secondary" style={{ padding: '0.6rem 1.2rem' }}>
                   Cancel
                 </button>
-                <button type="submit" disabled={loading} className="btn-primary" style={{ padding: '0.6rem 1.5rem' }}>
+                <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '0.6rem 1.5rem' }}>
                   {loading ? 'Saving Changes...' : 'Save Updates'}
                 </button>
               </div>

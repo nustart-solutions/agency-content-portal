@@ -43,7 +43,7 @@ export default function AddBrandContextModal({ brandId }: { brandId: string }) {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="btn-primary"
+        className="btn btn-primary"
         style={{ fontSize: '0.875rem', padding: '0.4rem 0.8rem' }}
       >
         + Add New Context
@@ -83,10 +83,10 @@ export default function AddBrandContextModal({ brandId }: { brandId: string }) {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" onClick={() => setIsOpen(false)} className="btn-secondary" style={{ padding: '0.5rem 1rem', background: 'transparent', border: '1px solid var(--border)', color: 'white', borderRadius: '6px', cursor: 'pointer' }}>
+                <button type="button" onClick={() => setIsOpen(false)} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
                   Cancel
                 </button>
-                <button type="submit" disabled={loading} className="btn-primary" style={{ padding: '0.5rem 1.5rem' }}>
+                <button type="submit" disabled={loading} className="btn btn-primary" style={{ padding: '0.5rem 1.5rem' }}>
                   {loading ? 'Saving...' : 'Save Context'}
                 </button>
               </div>

@@ -6,6 +6,7 @@ import CreateSubgroupModal from './CreateSubgroupModal'
 import CreateCampaignModal from './CreateCampaignModal'
 import AddBrandContextModal from './AddBrandContextModal'
 import EditBrandContextModal from './EditBrandContextModal'
+import EditBrandModal from './EditBrandModal'
 
 export default async function BrandDashboardPage({
   params
@@ -70,7 +71,15 @@ export default async function BrandDashboardPage({
           <Link href={`/dashboard/organizations/${brand.organization_id}`} className="back-link">
             &larr; Back to {brand.organizations?.name || 'Organization'}
           </Link>
-          <h1 className="page-title">{brand.name} Content Board</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h1 className="page-title">{brand.name} Content Board</h1>
+            <EditBrandModal brand={{
+              id: brand.id,
+              name: brand.name,
+              logo_url: brand.logo_url,
+              requires_approval: brand.requires_approval
+            }} />
+          </div>
         </div>
         <CreateGroupModal brandId={brandId} />
       </div>

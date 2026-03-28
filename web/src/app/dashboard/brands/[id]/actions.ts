@@ -109,3 +109,31 @@ export async function addBrandContext(brandId: string, formData: FormData) {
   revalidatePath(`/dashboard/brands/${brandId}`)
   return { success: true }
 }
+
+export async function updateBrand(brandId: string, formData: FormData) {
+  const supabase = await createClient()
+  const name = formData.get('name') as string
+  const logoUrl = formData.get('logo_url') as string
+  const requiresApproval = formData.get('requires_approval') === 'on'
+
+  if (!name || name.trim() === '') {
+    return { error: 'Brand name is required' }
+  }
+
+  const { error } = await supabase
+    .from('brands')
+    .update({
+      name: name.trim(),
+      logo_url: logoUrl ? logoUrl.trim() : null,
+      requires_approval: requiresApproval
+    })
+    .eq('id', brandId)
+
+  if (error) {
+    console.error('Brand Update Error:', error.message)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/brands/${brandId}`)
+  return { success: true }
+}
