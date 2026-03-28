@@ -32,14 +32,14 @@ export default function EditBrandContextModal({ brandId, context }: { brandId: s
       <button 
         onClick={() => setIsOpen(true)}
         className="btn-secondary"
-        style={{ width: '100%', marginTop: '1rem', fontSize: '0.8rem', padding: '0.4rem 0.5rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--border)', borderRadius: '6px', cursor: 'pointer' }}
+        style={{ width: '100%', marginTop: '1rem', fontSize: '0.85rem', padding: '0.5rem', borderRadius: '6px', cursor: 'pointer' }}
       >
         View / Edit
       </button>
 
       {isOpen && (
         <div className="modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}>
-          <div className="modal-content glass-panel" style={{ width: '1050px', maxWidth: '95vw', maxHeight: '95vh', overflowY: 'auto' }}>
+          <div className="modal-content glass-panel" style={{ width: '1050px', maxWidth: '95vw', maxHeight: '95vh', overflowY: 'auto', backgroundColor: 'var(--background)' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Edit Document: <strong style={{ color: 'var(--primary)' }}>{context.context_type}</strong></h2>
               <button type="button" onClick={() => setIsOpen(false)} style={{ background: 'transparent', border: 'none', fontSize: '2rem', cursor: 'pointer', color: 'var(--muted)', lineHeight: 1 }}>&times;</button>
