@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
+import Link from 'next/link'
 import CreateOrgModal from './CreateOrgModal'
 
 export default async function OrganizationsPage() {
@@ -31,13 +32,13 @@ export default async function OrganizationsPage() {
       {/* Highly responsive CSS Grid for Premium Glass Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {orgs?.map(org => (
-          <div key={org.id} className="glass-panel org-card">
+          <Link href={`/dashboard/organizations/${org.id}`} key={org.id} className="glass-panel org-card" style={{ textDecoration: 'none', color: 'inherit' }}>
             <h3 style={{ fontSize: '1.25rem', fontWeight: 500 }}>{org.name}</h3>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '2rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
               <span style={{ fontFamily: 'monospace' }}>ID: {org.id.split('-')[0]}...</span>
               <span style={{ color: 'var(--primary)', fontWeight: 500 }}>Manage Brands &rarr;</span>
             </div>
-          </div>
+          </Link>
         ))}
         
         {orgs?.length === 0 && !error && (
