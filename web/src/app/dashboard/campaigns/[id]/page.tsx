@@ -43,14 +43,18 @@ export default async function CampaignPage({
     <div style={{ padding: '2.5rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem' }}>
         <div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 500 }}>
+          <div style={{ fontSize: '0.875rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 500, display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
             <Link href={`/dashboard/brands/${brandId}`} style={{ textDecoration: 'none', color: 'inherit', opacity: 0.8 }}>
               {brandName}
             </Link> 
-            <span style={{ margin: '0 0.5rem', color: 'var(--muted)' }}>&gt;</span> 
-            {groupName} 
-            <span style={{ margin: '0 0.5rem', color: 'var(--muted)' }}>&gt;</span> 
-            {subGroupName}
+            <span style={{ color: 'var(--muted)' }}>&gt;</span> 
+            <Link href={`/dashboard/brands/${brandId}`} style={{ textDecoration: 'none', color: 'inherit', opacity: 0.8 }}>
+              {groupName} 
+            </Link>
+            <span style={{ color: 'var(--muted)' }}>&gt;</span> 
+            <Link href={`/dashboard/brands/${brandId}`} style={{ textDecoration: 'none', color: 'inherit', opacity: 0.8 }}>
+              {subGroupName}
+            </Link>
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 600, letterSpacing: '-0.025em' }}>{campaign.name}</h1>
           <p style={{ color: 'var(--muted)', marginTop: '0.5rem' }}>

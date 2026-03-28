@@ -72,7 +72,14 @@ export default async function BrandDashboardPage({
             &larr; Back to {brand.organizations?.name || 'Organization'}
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <h1 className="page-title">{brand.name} Content Board</h1>
+            {brand.logo_url && (
+              <img 
+                src={brand.logo_url} 
+                alt={`${brand.name} logo`} 
+                style={{ height: '36px', width: 'auto', borderRadius: '6px', objectFit: 'contain' }} 
+              />
+            )}
+            <h1 className="page-title">{brand.name} Dashboard</h1>
             <EditBrandModal brand={{
               id: brand.id,
               name: brand.name,
