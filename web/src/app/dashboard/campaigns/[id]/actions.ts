@@ -163,3 +163,38 @@ export async function triggerPublishAsset(assetId: string, campaignId: string) {
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
   return { success: true }
 }
+
+export async function resetAssetToDraft(assetId: string, campaignId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('assets')
+    .update({ status: 'draft' })
+    .eq('id', assetId)
+
+  if (error) {
+    console.error('Error resetting asset:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  return { success: true }
+}
+
+export async function deleteAsset(assetId: string, campaignId: string) {
+  const supabase = await createClient()
+
+  // First delete the asset
+  const { error } = await supabase
+    .from('assets')
+    .delete()
+    .eq('id', assetId)
+
+  if (error) {
+    console.error('Error deleting asset:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  return { success: true }
+}

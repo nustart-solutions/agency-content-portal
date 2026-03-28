@@ -60,6 +60,7 @@ export default function AssetExecutionActions({ assetId, campaignId, status }: P
             Cancel
           </button>
         </form>
+      ) : (
         <>
           {status === 'in_progress' ? (
             <>
