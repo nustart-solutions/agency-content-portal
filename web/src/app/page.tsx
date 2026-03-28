@@ -28,8 +28,7 @@ export default function Home() {
           </button>
         </form>
       </div>
-
-      <style jsx>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .dashboard-login-wrapper {
           min-height: 100vh;
           display: flex;
@@ -97,7 +96,7 @@ export default function Home() {
           font-weight: 600;
           margin-bottom: 0.5rem;
           letter-spacing: -0.025em;
-          color: white;
+          color: var(--foreground);
         }
 
         .login-header p {
@@ -130,22 +129,22 @@ export default function Home() {
         }
         
         .forgot-link:hover {
-          color: #a78bfa;
+          color: var(--primary-hover);
         }
 
         .input-group label {
           font-size: 0.875rem;
           font-weight: 500;
-          color: #e4e4e7;
+          color: var(--foreground);
         }
 
         .input-group input {
           width: 100%;
           padding: 0.85rem 1rem;
           border-radius: 0.5rem;
-          background: rgba(0,0,0,0.3);
+          background: var(--surface);
           border: 1px solid var(--border);
-          color: white;
+          color: var(--foreground);
           font-size: 0.95rem;
           transition: all 0.2s ease;
         }
@@ -154,7 +153,6 @@ export default function Home() {
           outline: none;
           border-color: var(--primary);
           box-shadow: 0 0 0 2px rgba(139,92,246,0.25);
-          background: rgba(0,0,0,0.4);
         }
 
         .w-full {
@@ -164,7 +162,7 @@ export default function Home() {
         .mt-4 {
           margin-top: 1rem;
         }
-      `}</style>
+      `}} />
     </main>
   );
 }

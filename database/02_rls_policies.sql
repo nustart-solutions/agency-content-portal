@@ -156,8 +156,16 @@ create policy "Org admins can see child assets" on public.assets
   );
 
 drop policy if exists "Brand users can see mapped assets" on public.assets;
-create policy "Brand users can see mapped assets" on public.assets 
-  for select using (
+create policy "Brand users full access to mapped assets" on public.assets 
+  for all using (
+    campaign_id in (
+      select c.id from public.campaigns c
+      join public.campaign_subgroups csg on c.campaign_subgroup_id = csg.id
+      join public.campaign_groups cg on csg.campaign_group_id = cg.id
+      where cg.brand_id in (select brand_id from public.user_roles where user_id = auth.uid() and role = 'brand_user')
+    )
+  )
+  with check (
     campaign_id in (
       select c.id from public.campaigns c
       join public.campaign_subgroups csg on c.campaign_subgroup_id = csg.id
