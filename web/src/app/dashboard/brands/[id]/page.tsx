@@ -93,14 +93,12 @@ export default async function BrandDashboardPage({
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
             {brandContexts.map((ctx: any) => (
-              <div key={ctx.id} className="glass-panel" style={{ padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                <strong style={{ display: 'block', color: 'var(--primary)', marginBottom: '0.25rem' }}>{ctx.context_type}</strong>
-                <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
-                  Stored as Markdown ({ctx.content_markdown.length} chars)
-                </span>
-                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.5rem' }}>
-                  Updated: {new Date(ctx.created_at).toLocaleDateString()}
-                </span>
+              <div key={ctx.id} className="glass-panel" style={{ padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <strong style={{ display: 'block', color: 'var(--primary)', fontSize: '1.2rem' }}>{ctx.context_type}</strong>
+                <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
+                  <div style={{ marginBottom: '0.2rem' }}>Updated: {new Date(ctx.created_at).toLocaleDateString()}</div>
+                  <div>Chars: {ctx.content_markdown.length.toLocaleString()}</div>
+                </div>
                 <EditBrandContextModal brandId={brandId} context={ctx} />
               </div>
             ))}

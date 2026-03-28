@@ -159,7 +159,8 @@ export default function SimpleMarkdownEditor({
         <div style={{ 
           padding: '1.5rem', 
           minHeight: `${rows * 1.5}rem`, 
-          background: 'rgba(0,0,0,0.1)', 
+          background: 'var(--surface)', 
+          borderTop: 'none',
           overflowY: 'auto' 
         }}>
           {/* We strictly must have this hidden input so the FormData saves effectively during Preview Mode */}
