@@ -1,5 +1,6 @@
 'use client';
 
+import { login } from '@/app/login/actions';
 export default function Home() {
   return (
     <main className="dashboard-login-wrapper">
@@ -10,19 +11,19 @@ export default function Home() {
           <p>Sign in to track your brand campaigns.</p>
         </div>
         
-        <form className="login-form">
+        <form className="login-form" action={login}>
           <div className="input-group">
             <label htmlFor="email">Email address</label>
-            <input type="email" id="email" placeholder="client@brand.com" />
+            <input type="email" id="email" name="email" placeholder="client@brand.com" required />
           </div>
           <div className="input-group">
             <div className="password-header">
               <label htmlFor="password">Password</label>
               <a href="/forgot-password" className="forgot-link">Forgot password?</a>
             </div>
-            <input type="password" id="password" placeholder="••••••••" />
+            <input type="password" id="password" name="password" placeholder="••••••••" required />
           </div>
-          <button type="button" className="btn btn-primary w-full mt-4">
+          <button type="submit" className="btn btn-primary w-full mt-4">
             Sign In to Dashboard
           </button>
         </form>
