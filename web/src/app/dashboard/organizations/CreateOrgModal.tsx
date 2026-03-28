@@ -69,24 +69,6 @@ export default function CreateOrgModal() {
         </div>
       )}
 
-      {/* Scoped CSS specifically for the animated overlay */}
-      <style jsx>{`
-        .modal-backdrop {
-          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-          background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          display: flex; align-items: center; justify-content: center; z-index: 9999;
-        }
-        .modal-content {
-          width: 100%; max-width: 440px; padding: 2.5rem;
-          animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        @keyframes scaleUp {
-          from { transform: scale(0.95) translateY(10px); opacity: 0; }
-          to { transform: scale(1) translateY(0); opacity: 1; }
-        }
-      `}</style>
     </>
   )
 }

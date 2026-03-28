@@ -47,18 +47,6 @@ export default async function OrganizationsPage() {
         )}
       </div>
 
-      <style jsx>{`
-        .org-card {
-          padding: 1.75rem; 
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
-          cursor: pointer;
-        }
-        .org-card:hover {
-          transform: translateY(-4px);
-          border-color: var(--primary);
-          box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.3);
-        }
-      `}</style>
     </div>
   )
 }
