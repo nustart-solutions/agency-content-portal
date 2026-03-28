@@ -4,6 +4,7 @@ import Link from 'next/link'
 import CreateGroupModal from './CreateGroupModal'
 import CreateSubgroupModal from './CreateSubgroupModal'
 import CreateCampaignModal from './CreateCampaignModal'
+import AddBrandContextModal from './AddBrandContextModal'
 
 export default async function BrandDashboardPage({
   params
@@ -40,6 +41,13 @@ export default async function BrandDashboardPage({
     .eq('brand_id', brandId)
     .order('created_at', { ascending: false })
 
+  // 3. Fetch specific Brand Context elements
+  const { data: brandContexts } = await supabase
+    .from('brand_contexts')
+    .select('*')
+    .eq('brand_id', brandId)
+    .order('context_type', { ascending: true })
+
   // Sort nested items in JavaScript to ensure consistent chronological display
   const sortedGroups = groups?.map((g: any) => {
     return {
@@ -69,6 +77,38 @@ export default async function BrandDashboardPage({
       <p className="section-description">
         Manage the unified master taxonomy of Groups, Subgroups, and active Campaigns for this brand.
       </p>
+
+      {/* Brand Intelligence Context Section */}
+      <div style={{ marginTop: '2.5rem', marginBottom: '2.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Brand Intelligence</h2>
+          <AddBrandContextModal brandId={brandId} />
+        </div>
+        
+        {(!brandContexts || brandContexts.length === 0) ? (
+          <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--muted)' }}>
+            No background context available yet. The AI pipeline won't have tone guidelines!
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+            {brandContexts.map((ctx: any) => (
+              <div key={ctx.id} className="glass-panel" style={{ padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                <strong style={{ display: 'block', color: 'var(--primary)', marginBottom: '0.25rem' }}>{ctx.context_type}</strong>
+                <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+                  Stored as Markdown ({ctx.content_markdown.length} chars)
+                </span>
+                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.5rem' }}>
+                  Updated: {new Date(ctx.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Campaign Taxonomy</h2>
+      </div>
 
       {sortedGroups.length === 0 ? (
         <div className="empty-state glass-panel">

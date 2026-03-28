@@ -83,3 +83,29 @@ export async function createCampaign(brandId: string, subgroupId: string, formDa
   revalidatePath(`/dashboard/brands/${brandId}`)
   return { success: true }
 }
+
+export async function addBrandContext(brandId: string, formData: FormData) {
+  const supabase = await createClient()
+  const contextType = formData.get('context_type') as string
+  const contentMarkdown = formData.get('content_markdown') as string
+
+  if (!contextType || !contentMarkdown || contentMarkdown.trim() === '') {
+    return { error: 'Context type and content are required' }
+  }
+
+  // Upsert seamlessly overwrites if this type of context already exists!
+  const { error } = await supabase
+    .from('brand_contexts')
+    .upsert(
+      { brand_id: brandId, context_type: contextType, content_markdown: contentMarkdown.trim() },
+      { onConflict: 'brand_id,context_type' }
+    )
+
+  if (error) {
+    console.error('Context Insertion Error:', error.message)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/brands/${brandId}`)
+  return { success: true }
+}
