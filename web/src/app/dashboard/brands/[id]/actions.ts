@@ -137,3 +137,33 @@ export async function updateBrand(brandId: string, formData: FormData) {
   revalidatePath(`/dashboard/brands/${brandId}`)
   return { success: true }
 }
+
+export async function triggerGenerateBrandContext(brandId: string, websiteUrl: string) {
+  const supabase = await createClient()
+
+  // Step 1: Optimistically update UI to generating
+  const { error } = await supabase
+    .from('brands')
+    .update({ context_status: 'generating' })
+    .eq('id', brandId)
+
+  if (error) {
+    console.error('Error starting context generation:', error)
+    return { error: error.message }
+  }
+
+  // Step 2: Trigger Modal Webhook asynchronously (Fire and forget)
+  const modalUrl = process.env.MODAL_GENERATE_BRAND_CONTEXT_URL || 'https://content-portal-execution-generate-brand-context.modal.run'
+  try {
+    fetch(modalUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ brand_id: brandId, website_url: websiteUrl })
+    }).catch(e => console.error("Modal fetch failed (async):", e))
+  } catch (err) {
+    console.error("Modal fetch setup failed:", err)
+  }
+
+  revalidatePath(`/dashboard/brands/${brandId}`)
+  return { success: true }
+}

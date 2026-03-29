@@ -7,6 +7,7 @@ import CreateCampaignModal from './CreateCampaignModal'
 import AddBrandContextModal from './AddBrandContextModal'
 import EditBrandContextModal from './EditBrandContextModal'
 import EditBrandModal from './EditBrandModal'
+import SpiderWebsiteButton from './SpiderWebsiteButton'
 
 export default async function BrandDashboardPage({
   params
@@ -98,7 +99,10 @@ export default async function BrandDashboardPage({
       {/* Brand Intelligence Context Section */}
       <div style={{ marginTop: '2.5rem', marginBottom: '2.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Knowledge Bank</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Knowledge Bank</h2>
+            <SpiderWebsiteButton brandId={brandId} websiteUrl={brand.website_url} contextStatus={brand.context_status} />
+          </div>
           <AddBrandContextModal brandId={brandId} />
         </div>
         
