@@ -174,7 +174,7 @@ export default async function BrandDashboardPage({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
             {brandContexts.map((ctx: any) => (
               <div key={ctx.id} className="glass-panel" style={{ padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <strong style={{ display: 'block', color: 'var(--primary)', fontSize: '1.2rem' }}>{ctx.context_type}</strong>
+                <strong style={{ display: 'block', color: 'var(--primary)', fontSize: '1.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={ctx.context_type}>{ctx.context_type}</strong>
                 <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
                   <div style={{ marginBottom: '0.2rem' }}>Updated: {new Date(ctx.created_at).toLocaleDateString()}</div>
                   <div style={{ marginBottom: '0.5rem' }}>Chars: {ctx.content_markdown?.length?.toLocaleString() || 0}</div>

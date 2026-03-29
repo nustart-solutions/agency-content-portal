@@ -37,6 +37,7 @@ export default async function CampaignPage({
 
   // Breadcrumb details
   const subGroupName = campaign.campaign_subgroups?.name
+  const subGroupId = campaign.campaign_subgroups?.id
   const groupName = campaign.campaign_subgroups?.campaign_groups?.name
   const brandName = campaign.campaign_subgroups?.campaign_groups?.brands?.name
   const brandId = campaign.campaign_subgroups?.campaign_groups?.brand_id
@@ -54,7 +55,7 @@ export default async function CampaignPage({
               {groupName} 
             </Link>
             <span style={{ color: 'var(--muted)' }}>&gt;</span> 
-            <Link href={`/dashboard/brands/${brandId}`} style={{ textDecoration: 'none', color: 'inherit', opacity: 0.8 }}>
+            <Link href={`/dashboard/subgroups/${subGroupId}`} style={{ textDecoration: 'none', color: 'inherit', opacity: 0.8 }}>
               {subGroupName}
             </Link>
           </div>
@@ -93,7 +94,7 @@ export default async function CampaignPage({
                         {asset.title}
                       </Link>
                     </h3>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.45rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.asset_type.replace('_', ' ').toUpperCase()}
                       </span>
@@ -101,12 +102,19 @@ export default async function CampaignPage({
                         {asset.channel.replace('_', ' ').toUpperCase()}
                       </span>
                       {asset.google_doc_url && (
-                        <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center' }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                          Doc
+                        </a>
+                      )}
+                      {asset.published_url && (
+                        <a href={asset.published_url} target="_blank" rel="noopener noreferrer" title="View Published Article" className="hover:opacity-80 transition-opacity" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '0.5rem', fontWeight: 600 }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                          View Published Article
                         </a>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.4rem', display: 'flex', gap: '0.75rem', alignItems: 'center', opacity: 0.8 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center', opacity: 0.8 }}>
                       {asset.created_at && <span>Created: {new Date(asset.created_at).toLocaleDateString()}</span>}
                       {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
                       {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
@@ -145,7 +153,7 @@ export default async function CampaignPage({
                         {asset.title}
                       </Link>
                     </h3>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.35rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.45rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.asset_type.replace('_', ' ').toUpperCase()}
                       </span>
@@ -153,12 +161,19 @@ export default async function CampaignPage({
                         {asset.channel.replace('_', ' ').toUpperCase()}
                       </span>
                       {asset.google_doc_url && (
-                        <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center' }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                          Doc
+                        </a>
+                      )}
+                      {asset.published_url && (
+                        <a href={asset.published_url} target="_blank" rel="noopener noreferrer" title="View Published Article" className="hover:opacity-80 transition-opacity" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '0.5rem', fontWeight: 600 }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                          View Published Article
                         </a>
                       )}
                     </div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.4rem', display: 'flex', gap: '0.75rem', alignItems: 'center', opacity: 0.8 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.5rem', display: 'flex', gap: '0.75rem', alignItems: 'center', opacity: 0.8 }}>
                       {asset.created_at && <span>Created: {new Date(asset.created_at).toLocaleDateString()}</span>}
                       {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
                       {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
