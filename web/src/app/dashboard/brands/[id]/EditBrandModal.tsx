@@ -11,9 +11,10 @@ interface EditBrandModalProps {
     website_url: string | null
     requires_approval: boolean
   }
+  isAgencyAdmin?: boolean
 }
 
-export default function EditBrandModal({ brand }: EditBrandModalProps) {
+export default function EditBrandModal({ brand, isAgencyAdmin = false }: EditBrandModalProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -59,7 +60,7 @@ export default function EditBrandModal({ brand }: EditBrandModalProps) {
 
       {isOpen && (
         <div className="modal-backdrop">
-          <div className="modal-content glass-panel" style={{ background: 'var(--background)' }}>
+          <div className="modal-content glass-panel" style={{ background: 'var(--background)', border: '1px solid var(--border)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
             <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem', fontWeight: 600 }}>Edit Brand Profile</h3>
             
             {error && (
@@ -134,65 +135,67 @@ export default function EditBrandModal({ brand }: EditBrandModalProps) {
                 </label>
               </div>
 
-              <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-                <button 
-                  type="button" 
-                  onClick={() => setShowCredentials(!showCredentials)}
-                  style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: 0 }}
-                >
-                  {showCredentials ? '▼' : '▶'} Advanced: WordPress Credentials (Encrypted)
-                </button>
-                
-                {showCredentials && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', padding: '1.25rem', background: 'rgba(0,0,0,0.1)', borderRadius: '0.5rem', border: '1px dashed var(--border)' }}>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>
-                      Stored securely in Supabase Vault. Leaving these blank will keep existing credentials.
-                    </p>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
-                        WP API URL
-                      </label>
-                      <input 
-                        type="url" 
-                        name="wp_url" 
-                        placeholder="e.g. https://example.com/wp-json"
-                        style={{
-                          width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
-                          background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
-                        }}
-                      />
+              {isAgencyAdmin && (
+                <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowCredentials(!showCredentials)}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', padding: 0 }}
+                  >
+                    {showCredentials ? '▼' : '▶'} Advanced: WordPress Credentials (Encrypted)
+                  </button>
+                  
+                  {showCredentials && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem', padding: '1.25rem', background: 'rgba(0,0,0,0.1)', borderRadius: '0.5rem', border: '1px dashed var(--border)' }}>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: 0 }}>
+                        Stored securely in Supabase Vault. Leaving these blank will keep existing credentials.
+                      </p>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                          WP API URL
+                        </label>
+                        <input 
+                          type="url" 
+                          name="wp_url" 
+                          placeholder="e.g. https://example.com/wp-json"
+                          style={{
+                            width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
+                            background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                          WP Username
+                        </label>
+                        <input 
+                          type="text" 
+                          name="wp_username" 
+                          placeholder="Admin Username"
+                          style={{
+                            width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
+                            background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                          WP Application Password
+                        </label>
+                        <input 
+                          type="password" 
+                          name="wp_password" 
+                          placeholder="••••••••••••••••"
+                          style={{
+                            width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
+                            background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
-                        WP Username
-                      </label>
-                      <input 
-                        type="text" 
-                        name="wp_username" 
-                        placeholder="Admin Username"
-                        style={{
-                          width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
-                          background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
-                        WP Application Password
-                      </label>
-                      <input 
-                        type="password" 
-                        name="wp_password" 
-                        placeholder="••••••••••••••••"
-                        style={{
-                          width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
-                          background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setIsOpen(false)} className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>

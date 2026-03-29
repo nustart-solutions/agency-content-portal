@@ -18,6 +18,24 @@ export default async function BrandDashboardPage({
   const { id: brandId } = await params
   const supabase = await createClient()
 
+  // 0. Check User Role for UI permissions
+  const { data: userData } = await supabase.auth.getUser()
+  const userId = userData.user?.id
+
+  let isAgencyAdmin = false
+  if (userId) {
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'agency_admin')
+      .maybeSingle()
+      
+    if (roleData) {
+      isAgencyAdmin = true
+    }
+  }
+
   // 1. Fetch Brand & verify access
   const { data: brand, error: brandError } = await supabase
     .from('brands')
@@ -82,13 +100,16 @@ export default async function BrandDashboardPage({
               />
             )}
             <h1 className="page-title">{brand.name} Dashboard</h1>
-            <EditBrandModal brand={{
-              id: brand.id,
-              name: brand.name,
-              logo_url: brand.logo_url,
-              website_url: brand.website_url,
-              requires_approval: brand.requires_approval
-            }} />
+            <EditBrandModal 
+              brand={{
+                id: brand.id,
+                name: brand.name,
+                logo_url: brand.logo_url,
+                website_url: brand.website_url,
+                requires_approval: brand.requires_approval
+              }} 
+              isAgencyAdmin={isAgencyAdmin}
+            />
           </div>
         </div>
         <CreateGroupModal brandId={brandId} />
