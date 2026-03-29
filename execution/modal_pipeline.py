@@ -67,20 +67,83 @@ def generate_asset(data: Dict[str, Any]):
         contexts_res = supabase.table("brand_contexts").select("context_type, content_markdown").eq("brand_id", brand_id).execute()
         
         compiled_context = ""
+        master_knowledge = ""
         if contexts_res.data:
             for ctx in contexts_res.data:
-                compiled_context += f"--- {ctx['context_type'].upper()} ---\n{ctx['content_markdown']}\n\n"
+                if ctx['context_type'] == 'master_brand_knowledge':
+                    master_knowledge = ctx['content_markdown']
+                else:
+                    compiled_context += f"--- {ctx['context_type'].upper()} ---\n{ctx['content_markdown']}\n\n"
         else:
             # Fallback if absolutely zero context is supplied by the user
             compiled_context = "--- TONE GUIDELINES ---\nProfessional, authoritative, yet approachable."
-        
-        # 4. Generate Content (The "SEOMachine" hook)
-        # Using Gemini instead of OpenAI
+            
         client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        deep_research_context = ""
+        
+        # 3.5 DEEP RESEARCH
+        if data.get("deep_research", False):
+            print("== Executing Deep Research ==")
+            import requests
+            
+            # A. Internal Knowledge Extraction
+            if master_knowledge:
+                print("  -> Extracting targeted facts from Master Knowledge Blob...")
+                # We limit to first 300k chars to guarantee we stay comfortably within token limits for a quick retrieval
+                kr_prompt = f"The following is raw scraped content from a brand's website:\n\n{master_knowledge[:300000]}\n\nExtract the top 10 most relevant facts, capabilities, or stances this brand has regarding the topic: '{asset['title']}'. Return only the facts."
+                kr_resp = client.models.generate_content(model='gemini-2.5-flash', contents=kr_prompt)
+                deep_research_context += f"--- TARGETED BRAND FACTS ---\n{kr_resp.text}\n\n"
+                
+            # B. DataForSEO SERP Analysis
+            dfs_login = os.environ.get("DATAFORSEO_LOGIN")
+            dfs_pass = os.environ.get("DATAFORSEO_PASSWORD")
+            if dfs_login and dfs_pass:
+                print("  -> Fetching Top 5 Competitors from DataForSEO...")
+                dfs_url = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
+                payload = [{"keyword": asset['title'], "location_name": "United States", "language_code": "en", "depth": 5}]
+                try:
+                    serp_resp = requests.post(dfs_url, auth=(dfs_login, dfs_pass), json=payload, timeout=20)
+                    if serp_resp.status_code == 200:
+                        serp_data = serp_resp.json()
+                        items = serp_data.get("tasks", [])[0].get("result", [])[0].get("items", [])
+                        
+                        # Top 3 organic competitors for scraping speed
+                        top_urls = [item["url"] for item in items if item.get("type") == "organic"][:3]
+                        
+                        # C. Scrape Competitors via Jina
+                        if top_urls:
+                            print("  -> Scraping Competitor Outlines via Jina AI...")
+                            import concurrent.futures
+                            competitor_texts = []
+                            
+                            def scrape_comp(u):
+                                try:
+                                    j_resp = requests.get(f"https://r.jina.ai/{u}", headers={"Accept": "application/json"}, timeout=15)
+                                    if j_resp.status_code == 200: return f"URL: {u}\nContent: {j_resp.text[:20000]}\n"
+                                    return ""
+                                except: return ""
+                                
+                            with concurrent.futures.ThreadPoolExecutor(max_workers=3) as exec:
+                                for idx, f in enumerate(concurrent.futures.as_completed({exec.submit(scrape_comp, u): u for u in top_urls})):
+                                    text = f.result()
+                                    if text: competitor_texts.append(text)
+                                    
+                            if competitor_texts:
+                                comp_prompt = "Summarize the core outline and key missing gaps from these top-ranking competitors:\n\n" + "\n---\n".join(competitor_texts)
+                                comp_resp = client.models.generate_content(model='gemini-2.5-flash', contents=comp_prompt)
+                                deep_research_context += f"--- COMPETITOR OUTLINE & GAPS ---\n{comp_resp.text}\n\n"
+                except Exception as e:
+                    print(f"  -> DataForSEO/Competitor scraping failed: {e}")
+            else:
+                print("  -> Skipping SERP check (Missing DATAFORSEO_LOGIN or PASSWORD credentials in Modal)")
+
+        # 4. Generate Content (The "SEOMachine" hook)
+        print("== Generating Final Content ==")
         
         prompt = f"""You are a master SEO content generator. 
 
 {compiled_context}
+{deep_research_context}
 
 Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['channel']} channel. Return raw markdown (no markdown blocks like ```markdown)."""
 
@@ -381,22 +444,43 @@ def generate_brand_context(data: Dict[str, Any]):
         except Exception as e:
             print(f"Sitemap parsing failed: {e}. Defaulting to homepage only.")
             
-        # Ensure unique, cap at 30 to prevent massive timeouts
-        urls_to_scrape = list(dict.fromkeys(urls_to_scrape))[:30]
+        # Ensure unique, cap realistically at 500 to keep within Gemini 1M token context limit
+        # but capture virtually all pages for small-to-medium businesses.
+        urls_to_scrape = list(dict.fromkeys(urls_to_scrape))[:500]
         
-        # 3. Scrape all extracted URLs sequentially via Jina
-        print(f"Scraping up to {len(urls_to_scrape)} pages using Jina AI...")
-        compiled_website_text = ""
+        # 3. Scrape ALL extracted URLs quickly via Jina using ThreadPoolExecutor
+        print(f"Scraping {len(urls_to_scrape)} pages using Jina AI in parallel...")
+        compiled_website_text_blocks = []
         
-        for idx, u in enumerate(urls_to_scrape):
+        import concurrent.futures
+        
+        def scrape_url(u):
             try:
                 jina_url = "https://r.jina.ai/" + u
-                print(f"  [{idx+1}/{len(urls_to_scrape)}] Scraping {u}...")
-                jina_resp = requests.get(jina_url, timeout=20)
+                headers = {"Accept": "application/json"}
+                jina_resp = requests.get(jina_url, timeout=30)
                 if jina_resp.status_code == 200:
-                    compiled_website_text += f"\n\n======================\n--- PAGE: {u} ---\n======================\n\n{jina_resp.text}\n"
+                    return f"\n\n======================\n--- PAGE: {u} ---\n======================\n\n{jina_resp.text}\n"
+                return ""
             except Exception as e:
                 print(f"  FAILED to scrape {u}: {e}")
+                return ""
+
+        # Rapid parallel execution
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_url = {executor.submit(scrape_url, curr_u): curr_u for curr_u in urls_to_scrape}
+            for index, future in enumerate(concurrent.futures.as_completed(future_to_url)):
+                url = future_to_url[future]
+                try:
+                    data = future.result()
+                    if data:
+                        compiled_website_text_blocks.append(data)
+                        if index % 10 == 0:
+                            print(f"  [{index}/{len(urls_to_scrape)}] Successfully processed chunk...")
+                except Exception as exc:
+                    print(f'{url} generated an exception: {exc}')
+                    
+        compiled_website_text = "".join(compiled_website_text_blocks)
                 
         if not compiled_website_text.strip():
             raise Exception("No content could be extracted from the website.")

@@ -11,6 +11,7 @@ export async function createAsset(campaignId: string, formData: FormData) {
   const asset_type = formData.get('asset_type') as string
   const channel = formData.get('channel') as string
   const is_anchor = formData.get('is_anchor') === 'on'
+  const deep_research = formData.get('deep_research') === 'on'
 
   if (!title || !asset_type || !channel) {
     return { error: 'Missing required fields' }
@@ -24,6 +25,7 @@ export async function createAsset(campaignId: string, formData: FormData) {
       asset_type,
       channel,
       is_anchor,
+      deep_research,
       status: 'draft'
     })
 
@@ -90,6 +92,7 @@ export async function triggerGenerateAsset(assetId: string, campaignId: string) 
         requires_approval: requiresApproval,
         title: assetData?.title,
         asset_type: assetData?.asset_type,
+        deep_research: assetData?.deep_research || false,
         brand_name: brandName,
         campaign_name: campaignName
       })

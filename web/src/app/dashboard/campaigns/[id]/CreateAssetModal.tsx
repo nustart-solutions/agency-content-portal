@@ -90,7 +90,7 @@ export default function CreateAssetModal({ campaignId }: { campaignId: string })
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
@@ -98,6 +98,19 @@ export default function CreateAssetModal({ campaignId }: { campaignId: string })
                     style={{ cursor: 'pointer' }}
                   />
                   This is an Anchor Asset (Cornerstone Content)
+                </label>
+                
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer', background: 'rgba(56, 189, 248, 0.1)', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
+                  <input
+                    type="checkbox"
+                    name="deep_research"
+                    defaultChecked
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div>
+                    <strong style={{ display: 'block', color: '#38bdf8' }}>Enable Deep Research</strong>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>Retrieves Master Brand Knowledge and performs live DataForSEO SERP competitor analysis.</span>
+                  </div>
                 </label>
               </div>
 
