@@ -196,9 +196,11 @@ export default async function BrandDashboardPage({
                               const finalDisplayAsset = fallbackPublished;
 
                               return (
-                            <Link href={`/dashboard/campaigns/${camp.id}`} key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'var(--glass-bg)', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'inherit' }}>
+                            <div key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'var(--glass-bg)', border: '1px solid var(--border)', borderRadius: '6px' }}>
                               <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
-                                <strong style={{ display: 'block', marginBottom: '0.25rem' }}>{camp.name}</strong>
+                                <Link href={`/dashboard/campaigns/${camp.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: '0.25rem' }}>
+                                  <strong>{camp.name}</strong>
+                                </Link>
                                 
                                 {finalDisplayAsset?.wordpress_post_url ? (
                                   <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -214,7 +216,6 @@ export default async function BrandDashboardPage({
                                         target="_blank" 
                                         rel="noopener noreferrer"
                                         style={{ color: '#00a3ff', textDecoration: 'underline', fontWeight: 500 }}
-                                        onClick={(e) => e.stopPropagation()} // Prevent triggering the Link wrapper
                                       >
                                         View Live ↗
                                       </a>
@@ -226,13 +227,13 @@ export default async function BrandDashboardPage({
                                   </span>
                                 )}
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
+                              <Link href={`/dashboard/campaigns/${camp.id}`} style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0, textDecoration: 'none', color: 'inherit' }}>
                                 <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
                                   {camp.assets?.length || 0} Assets
                                 </span>
                                 <span style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>&rarr;</span>
-                              </div>
-                            </Link>
+                              </Link>
+                            </div>
                           )})
                         )}
                       </div>
