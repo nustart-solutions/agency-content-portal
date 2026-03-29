@@ -8,6 +8,7 @@ import AddBrandContextModal from './AddBrandContextModal'
 import EditBrandContextModal from './EditBrandContextModal'
 import EditBrandModal from './EditBrandModal'
 import SpiderWebsiteButton from './SpiderWebsiteButton'
+import Scoreboard from '@/components/Scoreboard'
 
 export default async function BrandDashboardPage({
   params
@@ -93,9 +94,12 @@ export default async function BrandDashboardPage({
         <CreateGroupModal brandId={brandId} />
       </div>
 
-      <p className="section-description">
+      <p className="section-description" style={{ marginBottom: '2.5rem' }}>
         Manage the unified master taxonomy of Groups, Subgroups, and active Campaigns for this brand.
       </p>
+
+      {/* Global Scoreboard Render */}
+      <Scoreboard brandId={brandId} />
 
       {/* Brand Intelligence Context Section */}
       <div style={{ marginTop: '2.5rem', marginBottom: '2.5rem' }}>

@@ -50,7 +50,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">📅 Global Calendar</Link>
           <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">📄 All Assets</Link>
           <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">🖼️ Image Bank</Link>
-          <Link href="#" className="nav-link" style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Coming Soon">📊 Tracking & Reports</Link>
+          <Link href="/dashboard/reports" className="nav-link">📊 Tracking & Reports</Link>
         </nav>
 
         {/* User Card & Settings */}

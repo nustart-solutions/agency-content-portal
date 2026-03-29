@@ -41,9 +41,22 @@ export async function createAsset(campaignId: string, formData: FormData) {
 export async function updateAssetStatus(assetId: string, campaignId: string, newStatus: string) {
   const supabase = await createClient()
 
+  // Prepare standard update payload
+  const updatePayload: any = { status: newStatus }
+
+  // If status transitions to approved, stamp the approval time
+  if (newStatus === 'approved') {
+    updatePayload.approved_at = new Date().toISOString()
+  }
+  
+  // If status transitions to published via the dropdown (fallback), stamp publish time
+  if (newStatus === 'published') {
+    updatePayload.published_at = new Date().toISOString()
+  }
+
   const { error } = await supabase
     .from('assets')
-    .update({ status: newStatus })
+    .update(updatePayload)
     .eq('id', assetId)
 
   if (error) {
@@ -145,14 +158,17 @@ export async function submitExternalAsset(assetId: string, campaignId: string, f
 export async function triggerPublishAsset(assetId: string, campaignId: string) {
   const supabase = await createClient()
 
-  // First, optimize the UI by updating status to "approved" and maybe soon-to-be "published"
+  // First, optimize the UI by updating status to "published" and record the exact timestamp
   const { error } = await supabase
     .from('assets')
-    .update({ status: 'approved' })
+    .update({ 
+      status: 'published',
+      published_at: new Date().toISOString()
+    })
     .eq('id', assetId)
 
   if (error) {
-    console.error('Error approving asset:', error)
+    console.error('Error publishing asset:', error)
     return { error: error.message }
   }
 

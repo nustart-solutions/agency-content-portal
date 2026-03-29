@@ -68,15 +68,20 @@ def generate_asset(data: Dict[str, Any]):
         
         compiled_context = ""
         master_knowledge = ""
+        spoke_context = ""
         if contexts_res.data:
             for ctx in contexts_res.data:
                 if ctx['context_type'] == 'master_brand_knowledge':
                     master_knowledge = ctx['content_markdown']
                 else:
                     compiled_context += f"--- {ctx['context_type'].upper()} ---\n{ctx['content_markdown']}\n\n"
+                    # Only inject voice and UVP for Spoke context to prevent long SEO guidelines from bleeding in
+                    if ctx['context_type'] in ['brand_voice', 'uvp']:
+                        spoke_context += f"--- {ctx['context_type'].upper()} ---\n{ctx['content_markdown']}\n\n"
         else:
             # Fallback if absolutely zero context is supplied by the user
             compiled_context = "--- TONE GUIDELINES ---\nProfessional, authoritative, yet approachable."
+            spoke_context = compiled_context
             
         client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
         deep_research_context = ""
@@ -161,7 +166,7 @@ def generate_asset(data: Dict[str, Any]):
             prompt = f"""You are a master Social Media Manager and Copywriter.
 Your ONLY goal is to repurpose the following approved Anchor Article into a highly-engaging {asset['asset_type']} for {asset['channel']}.
 
-{compiled_context}
+{spoke_context}
 
 --- APPROVED ANCHOR ARTICLE ---
 {anchor_context.get('content_markdown', '')[:200000]}
