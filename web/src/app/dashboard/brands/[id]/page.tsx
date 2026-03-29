@@ -238,10 +238,11 @@ export default async function BrandDashboardPage({
                   ))
                 )}
               </div>
-            </details>
-          ))}
+              </details>
+            ))
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }
