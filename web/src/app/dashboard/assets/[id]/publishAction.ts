@@ -115,7 +115,7 @@ export async function publishToWordPress(assetId: string) {
       .from('assets')
       .update({
         wordpress_post_id: String(responseData.id),
-        wordpress_post_url: responseData.link,
+        published_url: responseData.link,
       })
       .eq('id', assetId)
 

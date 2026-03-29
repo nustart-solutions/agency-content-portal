@@ -12,7 +12,7 @@ export async function saveAssetDetails(assetId: string, formData: FormData) {
   const focus_keyword = formData.get('focus_keyword') as string
   const status = formData.get('status') as string
   const content_markdown = formData.get('content_markdown') as string
-  const wordpress_post_url = formData.get('wordpress_post_url') as string
+  const published_url = formData.get('published_url') as string
   let published_at = formData.get('published_at') as string
 
   const payload: any = {
@@ -21,13 +21,13 @@ export async function saveAssetDetails(assetId: string, formData: FormData) {
     focus_keyword,
     status,
     content_markdown,
-    wordpress_post_url: wordpress_post_url || null,
+    published_url: published_url || null,
   }
 
   if (published_at) {
     // Make sure it saves with a time so the date doesn't shift by timezone
     payload.published_at = new Date(published_at).toISOString()
-  } else if (wordpress_post_url && status === 'published') {
+  } else if (published_url && status === 'published') {
     // Auto-set to now if they pasted a link and it's published but forgot the date
     payload.published_at = new Date().toISOString()
   }

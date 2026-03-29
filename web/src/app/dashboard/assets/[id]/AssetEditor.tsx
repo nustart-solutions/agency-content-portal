@@ -103,8 +103,8 @@ export function AssetEditor({ asset }: { asset: any }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               <label style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 500 }}>Live Published URL</label>
               <input 
-                name="wordpress_post_url" 
-                defaultValue={asset.wordpress_post_url || ''} 
+                name="published_url" 
+                defaultValue={asset.published_url || ''} 
                 placeholder="https://client-site.com/published-article"
                 style={{ padding: '0.6rem 1rem', borderRadius: '4px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
               />

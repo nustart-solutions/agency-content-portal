@@ -54,7 +54,7 @@ export default async function BrandDashboardPage({
         *,
         campaigns (
           *,
-          assets ( id, title, is_anchor, asset_type, status, wordpress_post_url, published_at, created_at )
+          assets ( id, title, is_anchor, asset_type, status, published_url, published_at, created_at )
         )
       )
     `)
@@ -188,11 +188,11 @@ export default async function BrandDashboardPage({
                               // Find any published anchor asset (has URL or is marked published)
                               const publishedAnchor = camp.assets?.find((a: any) => 
                                 (a.is_anchor || a.asset_type?.includes('anchor') || a.asset_type === 'blog_post') && 
-                                (a.wordpress_post_url || a.status === 'published' || a.status === 'staged')
+                                (a.published_url || a.status === 'published' || a.status === 'staged')
                               );
 
-                              // Fallback: If no strict anchor matched, but there IS an asset with a WP URL, show that.
-                              const fallbackPublished = publishedAnchor || camp.assets?.find((a: any) => !!a.wordpress_post_url);
+                              // Fallback: If no strict anchor matched, but there IS an asset with a URL, show that.
+                              const fallbackPublished = publishedAnchor || camp.assets?.find((a: any) => !!a.published_url);
                               const finalDisplayAsset = fallbackPublished;
 
                               return (
@@ -202,7 +202,7 @@ export default async function BrandDashboardPage({
                                   <strong>{camp.name}</strong>
                                 </Link>
                                 
-                                {finalDisplayAsset?.wordpress_post_url ? (
+                                {finalDisplayAsset?.published_url ? (
                                   <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                                     <span style={{ color: 'var(--text-color)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
                                       {finalDisplayAsset.title}
@@ -212,7 +212,7 @@ export default async function BrandDashboardPage({
                                         Published: {finalDisplayAsset.published_at || finalDisplayAsset.created_at ? new Date(finalDisplayAsset.published_at || finalDisplayAsset.created_at).toLocaleDateString() : 'TBD'}
                                       </span>
                                       <a 
-                                        href={finalDisplayAsset.wordpress_post_url} 
+                                        href={finalDisplayAsset.published_url} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
                                         style={{ color: '#00a3ff', textDecoration: 'underline', fontWeight: 500 }}
