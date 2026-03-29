@@ -32,7 +32,7 @@ export default function TemplateEditor({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <textarea
         className="form-input"
-        style={{ width: '100%', minHeight: '150px', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.9rem' }}
+        style={{ width: '100%', minHeight: '150px', resize: 'vertical', fontFamily: 'monospace', fontSize: '0.9rem', padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '0.5rem', background: 'var(--background)' }}
         value={instructions}
         onChange={(e) => setInstructions(e.target.value)}
         placeholder="Enter strict instructions for this template..."

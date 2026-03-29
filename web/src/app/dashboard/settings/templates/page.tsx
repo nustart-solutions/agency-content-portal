@@ -40,7 +40,7 @@ export default async function GlobalTemplatesPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr)', gap: '1.5rem' }}>
         {templates?.map((template) => (
-          <div key={template.channel_name} className="glass-panel p-6">
+          <div key={template.channel_name} className="glass-panel" style={{ padding: '1.5rem' }}>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', textTransform: 'capitalize' }}>
               {template.channel_name.replace('_', ' ')}
             </h3>

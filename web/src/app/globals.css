@@ -45,9 +45,26 @@
 
 .sidebar-header {
   display: flex;
-  align-items: center;
-  gap: 1rem;
   margin-bottom: 2.5rem;
+}
+
+.sidebar-logo-img {
+  max-width: 200px;
+  height: auto;
+  margin-left: -0.25rem;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-logo-light {
+  display: none;
+}
+
+[data-theme='light'] .sidebar-logo-dark {
+  display: none;
+}
+
+[data-theme='light'] .sidebar-logo-light {
+  display: block;
 }
 
 .sidebar-nav {
