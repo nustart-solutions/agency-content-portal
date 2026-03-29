@@ -57,7 +57,11 @@ export async function publishToWordPress(assetId: string) {
     return { error: 'Invalid credentials format in vault' }
   }
 
-  if (!credentials.wp_url || !credentials.wp_username || !credentials.wp_password) {
+  const wp_url = credentials?.wordpress?.url
+  const wp_username = credentials?.wordpress?.username
+  const wp_password = credentials?.wordpress?.password
+
+  if (!wp_url || !wp_username || !wp_password) {
     return { error: 'Incomplete WordPress credentials configured' }
   }
 
@@ -78,10 +82,10 @@ export async function publishToWordPress(assetId: string) {
 
   // 5. Fire HTTP Request via standard fetch
   // Use a standard browser UA to prevent blocking by Cloudflare WAF
-  const authHeader = 'Basic ' + Buffer.from(credentials.wp_username + ':' + credentials.wp_password).toString('base64')
+  const authHeader = 'Basic ' + Buffer.from(wp_username + ':' + wp_password).toString('base64')
 
   try {
-    const response = await fetch(`${credentials.wp_url}/wp/v2/${asset.asset_type === 'page' ? 'pages' : 'posts'}`, {
+    const response = await fetch(`${wp_url}/wp/v2/${asset.asset_type === 'page' ? 'pages' : 'posts'}`, {
       method: 'POST',
       headers: {
         'Authorization': authHeader,
