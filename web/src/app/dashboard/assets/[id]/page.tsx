@@ -70,6 +70,13 @@ export default async function AssetPage({
                 Status: {asset.status}
               </span>
             </div>
+            {asset.wordpress_post_url && (
+              <div style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>
+                <a href={asset.wordpress_post_url} target="_blank" rel="noopener noreferrer" style={{ color: '#00a3ff', textDecoration: 'underline' }}>
+                  View Published Article ↗
+                </a>
+              </div>
+            )}
           </div>
           {asset.google_doc_url && (
             <a 

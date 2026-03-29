@@ -98,6 +98,27 @@ export function AssetEditor({ asset }: { asset: any }) {
              style={{ padding: '0.6rem 1rem', borderRadius: '4px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)', resize: 'vertical', minHeight: '60px' }}
            />
          </div>
+         
+         <div style={{ display: 'grid', gridColumn: 'span 2', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '0.5rem', paddingTop: '1.5rem', borderTop: '1px dashed var(--border)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 500 }}>Live Published URL</label>
+              <input 
+                name="wordpress_post_url" 
+                defaultValue={asset.wordpress_post_url || ''} 
+                placeholder="https://client-site.com/published-article"
+                style={{ padding: '0.6rem 1rem', borderRadius: '4px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+              />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <label style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 500 }}>Published Date</label>
+              <input 
+                type="date"
+                name="published_at" 
+                defaultValue={asset.published_at ? new Date(asset.published_at).toISOString().split('T')[0] : ''} 
+                style={{ padding: '0.6rem 1rem', borderRadius: '4px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)', colorScheme: 'dark' }}
+              />
+            </div>
+         </div>
        </div>
 
        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
