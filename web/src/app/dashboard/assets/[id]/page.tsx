@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
+import { AssetEditor } from './AssetEditor'
 
 export default async function AssetPage({ 
   params 
@@ -101,35 +102,7 @@ export default async function AssetPage({
       <div style={{ display: 'grid', gridTemplateColumns: userRole === 'agency_admin' ? '2fr 1fr' : '1fr', gap: '2rem' }}>
         
         {/* Main Content Viewer */}
-        <div className="glass-panel" style={{ padding: '2rem', borderRadius: '12px', minHeight: '60vh' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem' }}>
-            Asset Content
-          </h2>
-          
-          {asset.status === 'draft' || asset.status === 'in_progress' ? (
-             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh', color: 'var(--muted)', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
-               {asset.status === 'draft' ? 'This asset is currently a draft. Trigger generation from the Campaign view.' : 'AI is currently spinning up this asset...'}
-             </div>
-          ) : (
-            <textarea 
-              readOnly
-              value={asset.content_markdown || "No content generated."}
-              style={{
-                width: '100%',
-                minHeight: '50vh',
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid var(--border)',
-                borderRadius: '8px',
-                padding: '1.5rem',
-                color: 'var(--foreground)',
-                fontFamily: 'monospace',
-                fontSize: '0.875rem',
-                lineHeight: '1.6',
-                resize: 'vertical'
-              }}
-            />
-          )}
-        </div>
+        <AssetEditor asset={asset} />
 
         {/* AI Transparency Log */}
           <div className="glass-panel" style={{ padding: '2rem', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.03)', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
