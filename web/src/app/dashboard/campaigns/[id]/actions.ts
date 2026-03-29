@@ -244,9 +244,10 @@ export async function bulkCreateSpokeAssets(campaignId: string, anchorId: string
     .update({ published_url: publishedUrl })
     .eq('id', anchorId)
 
-  const requiresApproval = anchorData.campaigns?.campaign_subgroups?.campaign_groups?.brands?.requires_approval ?? true
-  const brandName = anchorData.campaigns?.campaign_subgroups?.campaign_groups?.brands?.name || 'Unknown Brand'
-  const campaignName = anchorData.campaigns?.name || 'Unknown Campaign'
+  const campaignsAny = anchorData.campaigns as any
+  const requiresApproval = campaignsAny?.campaign_subgroups?.campaign_groups?.brands?.requires_approval ?? true
+  const brandName = campaignsAny?.campaign_subgroups?.campaign_groups?.brands?.name || 'Unknown Brand'
+  const campaignName = campaignsAny?.name || 'Unknown Campaign'
   const baseTitle = anchorData.title
 
   // Create each spoke
