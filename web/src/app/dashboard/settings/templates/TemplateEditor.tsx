@@ -44,7 +44,7 @@ export default function TemplateEditor({
           className="btn btn-primary" 
           onClick={handleSave} 
           disabled={isSaving}
-          style={{ padding: '0.5rem 1.5rem', background: 'var(--accent)', color: 'white', borderRadius: '4px' }}
+          style={{ padding: '0.5rem 1.5rem', borderRadius: '4px' }}
         >
           {isSaving ? 'Saving...' : 'Save Constraints'}
         </button>
