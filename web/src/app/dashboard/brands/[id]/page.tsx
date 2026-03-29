@@ -54,7 +54,7 @@ export default async function BrandDashboardPage({
         *,
         campaigns (
           *,
-          assets ( count )
+          assets ( id, title, asset_type, status, wordpress_post_url, published_at )
         )
       )
     `)
@@ -183,22 +183,52 @@ export default async function BrandDashboardPage({
                         {(!subgroup.campaigns || subgroup.campaigns.length === 0) ? (
                           <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No active campaigns.</p>
                         ) : (
-                          subgroup.campaigns.map((camp: any) => (
+                          subgroup.campaigns.map((camp: any) => {
+                            // Find any published anchor asset (has URL or is marked published)
+                            const publishedAnchor = camp.assets?.find((a: any) => 
+                              (a.asset_type === 'anchor_article' || a.asset_type === 'anchor') && 
+                              (a.wordpress_post_url || a.status === 'published' || a.status === 'staged')
+                            );
+
+                            return (
                             <Link href={`/dashboard/campaigns/${camp.id}`} key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'var(--glass-bg)', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'inherit' }}>
-                              <div>
+                              <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
                                 <strong style={{ display: 'block', marginBottom: '0.25rem' }}>{camp.name}</strong>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                                  Target: {camp.target_publish_date ? new Date(camp.target_publish_date).toLocaleDateString() : 'TBD'}
-                                </span>
+                                
+                                {publishedAnchor?.wordpress_post_url ? (
+                                  <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                    <span style={{ color: 'var(--text-color)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+                                      {publishedAnchor.title}
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                      <span style={{ color: 'var(--primary)' }}>
+                                        Published: {publishedAnchor.published_at ? new Date(publishedAnchor.published_at).toLocaleDateString() : 'TBD'}
+                                      </span>
+                                      <a 
+                                        href={publishedAnchor.wordpress_post_url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        style={{ color: '#00a3ff', textDecoration: 'underline', fontWeight: 500 }}
+                                        onClick={(e) => e.stopPropagation()} // Prevent triggering the Link wrapper
+                                      >
+                                        View Live ↗
+                                      </a>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                                    Target: {camp.target_publish_date ? new Date(camp.target_publish_date).toLocaleDateString() : 'TBD'}
+                                  </span>
+                                )}
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
                                 <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                                  {camp.assets[0]?.count || 0} Assets
+                                  {camp.assets?.length || 0} Assets
                                 </span>
                                 <span style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>&rarr;</span>
                               </div>
                             </Link>
-                          ))
+                          )})
                         )}
                       </div>
                     </details>
