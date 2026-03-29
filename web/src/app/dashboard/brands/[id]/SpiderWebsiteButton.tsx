@@ -20,7 +20,9 @@ export default function SpiderWebsiteButton({
     <button 
       onClick={() => {
         if (websiteUrl) {
-          startTransition(() => triggerGenerateBrandContext(brandId, websiteUrl))
+          startTransition(() => {
+            triggerGenerateBrandContext(brandId, websiteUrl)
+          })
         }
       }}
       disabled={loading || !websiteUrl}
