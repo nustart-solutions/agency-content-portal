@@ -72,11 +72,17 @@ export async function publishToWordPress(assetId: string) {
   const wpPayload = {
     title: asset.meta_title || asset.title,
     content: blockContent,
-    status: 'draft', // User requested saving as draft when status="staged", or maybe we should hardcode 'draft' and manual review. Wait! If "staged" implies draft on WP ready for review.
-    seo_metadata: {
-      title: asset.meta_title || asset.title,
-      description: asset.meta_description || '',
-      focus_keywords: asset.focus_keyword ? [asset.focus_keyword] : []
+    status: 'draft', // Draft status allows clients to review before making it live
+    meta: {
+      // Yoast SEO Support
+      _yoast_wpseo_title: asset.meta_title || asset.title,
+      _yoast_wpseo_metadesc: asset.meta_description || '',
+      _yoast_wpseo_focuskw: asset.focus_keyword || '',
+      
+      // Rank Math SEO Support
+      rank_math_title: asset.meta_title || asset.title,
+      rank_math_description: asset.meta_description || '',
+      rank_math_focus_keyword: asset.focus_keyword || ''
     }
   }
 
@@ -103,10 +109,6 @@ export async function publishToWordPress(assetId: string) {
       return { error: `WordPress Error: ${responseData.message || response.statusText}` }
     }
 
-    // Attempt to verify if seo_metadata was retained (requires Nustart SEO Tools plugin)
-    if (responseData.seo_metadata === undefined) {
-      console.warn('WARN: seo_metadata not returned from WP API. Does the site have Nustart SEO Tools installed?')
-    }
 
     // 6. Update Asset in DB
     const { error: updateError } = await supabase

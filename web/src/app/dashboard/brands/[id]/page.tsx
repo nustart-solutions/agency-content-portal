@@ -164,7 +164,7 @@ export default async function BrandDashboardPage({
           {sortedGroups.map((group: any) => (
             <details key={group.id} className="glass-panel group-accordion" open style={{ padding: '1.5rem', borderRadius: '12px' }}>
               <summary style={{ fontSize: '1.25rem', fontWeight: 600, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Folder: {group.name}</span>
+                <span>Campaign Group: {group.name}</span>
                 <CreateSubgroupModal brandId={brandId} groupId={group.id} />
               </summary>
               
