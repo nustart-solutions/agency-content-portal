@@ -17,7 +17,7 @@ export default async function CampaignPage({
   // Fetch Campaign details
   const { data: campaign, error: campaignError } = await supabase
     .from('campaigns')
-    .select('*, campaign_subgroups(name, campaign_group_id, campaign_groups(name, brand_id, brands(name)))')
+    .select('*, campaign_subgroups(id, name, campaign_group_id, campaign_groups(name, brand_id, brands(name)))')
     .eq('id', campaignId)
     .single()
 

@@ -98,7 +98,7 @@ export default async function SubgroupPage({
                             {asset.is_anchor && <span title="Anchor Asset" style={{ color: 'var(--primary)' }}>★</span>}
                             {asset.title}
                           </h3>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.45rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.45rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                             <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                               {asset.asset_type.replace('_', ' ').toUpperCase()}
                             </span>
@@ -110,21 +110,21 @@ export default async function SubgroupPage({
                                 PUBLISHED
                               </span>
                             )}
+                            
+                            {/* Document & Published Links */}
+                            {asset.google_doc_url && (
+                              <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '0.5rem', fontWeight: 500 }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                Doc
+                              </a>
+                            )}
+                            {(asset.published_url || asset.wordpress_post_url) && (
+                              <a href={asset.published_url || asset.wordpress_post_url} target="_blank" rel="noopener noreferrer" title="View Published Article" className="hover:opacity-80 transition-opacity" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '0.5rem', fontWeight: 600 }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                View Published Article
+                              </a>
+                            )}
                           </div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          {asset.google_doc_url && (
-                            <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.875rem' }}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                              Doc
-                            </a>
-                          )}
-                          {asset.published_url && (
-                            <a href={asset.published_url} target="_blank" rel="noopener noreferrer" title="View Published Article" className="hover:opacity-80 transition-opacity" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600, fontSize: '0.875rem' }}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                              View Published Article
-                            </a>
-                          )}
                         </div>
                       </div>
                     ))}
