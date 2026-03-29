@@ -54,7 +54,7 @@ export default async function BrandDashboardPage({
         *,
         campaigns (
           *,
-          assets ( id, title, asset_type, status, wordpress_post_url, published_at )
+          assets ( id, title, is_anchor, asset_type, status, wordpress_post_url, published_at, created_at )
         )
       )
     `)
@@ -139,73 +139,76 @@ export default async function BrandDashboardPage({
             {brandContexts.map((ctx: any) => (
               <div key={ctx.id} className="glass-panel" style={{ padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <strong style={{ display: 'block', color: 'var(--primary)', fontSize: '1.2rem' }}>{ctx.context_type}</strong>
-                <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>
-                  <div style={{ marginBottom: '0.2rem' }}>Updated: {new Date(ctx.created_at).toLocaleDateString()}</div>
-                  <div>Chars: {ctx.content_markdown.length.toLocaleString()}</div>
+                <div style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+                  <EditBrandContextModal brandContext={ctx} brandId={brandId} />
                 </div>
-                <EditBrandContextModal brandId={brandId} context={ctx} />
               </div>
             ))}
           </div>
         )}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Campaign Taxonomy</h2>
-      </div>
-
-      {sortedGroups.length === 0 ? (
-        <div className="empty-state glass-panel">
-          <h3>No Campaign Groups Found</h3>
-          <p>Get started by building your first top-level initiative group.</p>
+      {/* Master Content Pipeline Taxonomy */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Content Pipeline</h2>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '2rem' }}>
-          {sortedGroups.map((group: any) => (
-            <details key={group.id} className="glass-panel group-accordion" open style={{ padding: '1.5rem', borderRadius: '12px' }}>
-              <summary style={{ fontSize: '1.25rem', fontWeight: 600, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Campaign Group: {group.name}</span>
-                <CreateSubgroupModal brandId={brandId} groupId={group.id} />
-              </summary>
-              
-              <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border)' }}>
-                {(!group.campaign_subgroups || group.campaign_subgroups.length === 0) ? (
-                  <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>No subgroups exist yet.</p>
-                ) : (
-                  group.campaign_subgroups.map((subgroup: any) => (
-                    <details key={subgroup.id} open style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                      <summary style={{ fontSize: '1rem', fontWeight: 500, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span>↳ {subgroup.name}</span>
-                        <CreateCampaignModal brandId={brandId} subgroupId={subgroup.id} />
-                      </summary>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {(!sortedGroups || sortedGroups.length === 0) ? (
+            <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
+              No Groups created. Start by organizing the strategy.
+            </div>
+          ) : (
+            sortedGroups.map((group: any) => (
+              <details key={group.id} open className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <summary style={{ fontSize: '1.2rem', fontWeight: 600, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Campaign Group: {group.name}</span>
+                  <CreateSubgroupModal brandId={brandId} groupId={group.id} />
+                </summary>
+                
+                <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border)' }}>
+                  {(!group.campaign_subgroups || group.campaign_subgroups.length === 0) ? (
+                    <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>No subgroups exist yet.</p>
+                  ) : (
+                    group.campaign_subgroups.map((subgroup: any) => (
+                      <details key={subgroup.id} open style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        <summary style={{ fontSize: '1rem', fontWeight: 500, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>↳ {subgroup.name}</span>
+                          <CreateCampaignModal brandId={brandId} subgroupId={subgroup.id} />
+                        </summary>
 
-                      <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {(!subgroup.campaigns || subgroup.campaigns.length === 0) ? (
-                          <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No active campaigns.</p>
-                        ) : (
-                          subgroup.campaigns.map((camp: any) => {
-                            // Find any published anchor asset (has URL or is marked published)
-                            const publishedAnchor = camp.assets?.find((a: any) => 
-                              (a.asset_type === 'anchor_article' || a.asset_type === 'anchor') && 
-                              (a.wordpress_post_url || a.status === 'published' || a.status === 'staged')
-                            );
+                        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {(!subgroup.campaigns || subgroup.campaigns.length === 0) ? (
+                            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No active campaigns.</p>
+                          ) : (
+                            subgroup.campaigns.map((camp: any) => {
+                              // Find any published anchor asset (has URL or is marked published)
+                              const publishedAnchor = camp.assets?.find((a: any) => 
+                                (a.is_anchor || a.asset_type?.includes('anchor') || a.asset_type === 'blog_post') && 
+                                (a.wordpress_post_url || a.status === 'published' || a.status === 'staged')
+                              );
 
-                            return (
+                              // Fallback: If no strict anchor matched, but there IS an asset with a WP URL, show that.
+                              const fallbackPublished = publishedAnchor || camp.assets?.find((a: any) => !!a.wordpress_post_url);
+                              const finalDisplayAsset = fallbackPublished;
+
+                              return (
                             <Link href={`/dashboard/campaigns/${camp.id}`} key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'var(--glass-bg)', border: '1px solid var(--border)', borderRadius: '6px', textDecoration: 'none', color: 'inherit' }}>
                               <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
                                 <strong style={{ display: 'block', marginBottom: '0.25rem' }}>{camp.name}</strong>
                                 
-                                {publishedAnchor?.wordpress_post_url ? (
+                                {finalDisplayAsset?.wordpress_post_url ? (
                                   <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                                     <span style={{ color: 'var(--text-color)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
-                                      {publishedAnchor.title}
+                                      {finalDisplayAsset.title}
                                     </span>
                                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                       <span style={{ color: 'var(--primary)' }}>
-                                        Published: {publishedAnchor.published_at ? new Date(publishedAnchor.published_at).toLocaleDateString() : 'TBD'}
+                                        Published: {finalDisplayAsset.published_at || finalDisplayAsset.created_at ? new Date(finalDisplayAsset.published_at || finalDisplayAsset.created_at).toLocaleDateString() : 'TBD'}
                                       </span>
                                       <a 
-                                        href={publishedAnchor.wordpress_post_url} 
+                                        href={finalDisplayAsset.wordpress_post_url} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
                                         style={{ color: '#00a3ff', textDecoration: 'underline', fontWeight: 500 }}
