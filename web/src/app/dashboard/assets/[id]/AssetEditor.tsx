@@ -2,10 +2,25 @@
 
 import { useState } from 'react'
 import { saveAssetDetails } from './actions'
+import { syncDocAction } from './syncDocAction'
 
 export function AssetEditor({ asset }: { asset: any }) {
   const [isSaving, setIsSaving] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null)
+
+  async function handleSync() {
+    if (!asset.google_doc_url) return
+    setIsSyncing(true)
+    setMessage(null)
+    const result = await syncDocAction(asset.id)
+    if (result.error) {
+       setMessage({ text: result.error, type: 'error' })
+    } else {
+       setMessage({ text: 'Content fully synced from Google Doc!', type: 'success' })
+    }
+    setIsSyncing(false)
+  }
 
   // Wait, I need a form
   async function onSubmit(formData: FormData) {
@@ -86,9 +101,28 @@ export function AssetEditor({ asset }: { asset: any }) {
        </div>
 
        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-          <label style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 500 }}>
-             Content Body (Markdown)
-          </label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 500 }}>
+               Content Body (Markdown)
+            </label>
+            <button 
+              type="button" 
+              onClick={handleSync}
+              disabled={isSyncing || !asset.google_doc_url}
+              style={{
+                background: 'rgba(66, 133, 244, 0.1)',
+                color: '#4285F4',
+                border: '1px solid rgba(66, 133, 244, 0.2)',
+                padding: '0.3rem 0.8rem',
+                borderRadius: '4px',
+                fontSize: '0.8rem',
+                cursor: (isSyncing || !asset.google_doc_url) ? 'not-allowed' : 'pointer',
+                opacity: (isSyncing || !asset.google_doc_url) ? 0.5 : 1
+              }}
+            >
+              {isSyncing ? 'Syncing...' : 'Sync from Google Doc'}
+            </button>
+          </div>
           <textarea 
             name="content_markdown"
             defaultValue={asset.content_markdown || ''}

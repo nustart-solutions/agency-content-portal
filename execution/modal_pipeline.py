@@ -12,7 +12,8 @@ image = (
         "requests",
         "google-api-python-client",
         "google-auth",
-        "markdown"
+        "markdown",
+        "markdownify"
     )
     .add_local_dir("execution/seomachine", remote_path="/root/seomachine")
 )
@@ -578,4 +579,114 @@ WEBSITE CONTEXT:
         print(f"CRITICAL ERROR generating brand context: {e}")
         # Revert status on failure
         supabase.table("brands").update({"context_status": "missing"}).eq("id", brand_id).execute()
+        return {"error": str(e)}
+
+# ==========================================
+# WEBHOOK: sync_asset_from_doc
+# ==========================================
+@app.function(
+    image=image,
+    secrets=[
+        modal.Secret.from_name("content-portal-secrets"),
+        modal.Secret.from_name("googlecloud-secret")
+    ],
+    timeout=120
+)
+@modal.web_endpoint(method="POST")
+def sync_asset_from_doc(data: Dict[str, Any]):
+    import os
+    import re
+    import json
+    from supabase import create_client
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+    import markdownify
+    
+    asset_id = data.get("asset_id")
+    if not asset_id:
+        return {"error": "asset_id required"}
+        
+    supabase = create_client(os.environ.get("SUPABASE_URL", ""), os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""))
+    
+    try:
+        # 1. Fetch Google Doc URL from Asset
+        asset_res = supabase.table("assets").select("google_doc_url").eq("id", asset_id).single().execute()
+        doc_url = asset_res.data.get("google_doc_url")
+        
+        if not doc_url:
+            return {"error": "This asset does not have an attached Google Doc."}
+            
+        # Extract doc ID from URL
+        match = re.search(r'/d/([a-zA-Z0-9-_]+)', doc_url)
+        if not match:
+            return {"error": "Could not parse Google Doc ID from URL."}
+        doc_id = match.group(1)
+        
+        # 2. Authenticate Google API
+        possible_keys = ["service_accout_json", "service_account_json", "SERVICE_ACCOUT_JSON", "SERVICE_ACCOUNT_JSON", "GOOGLE_SERVICE_ACCOUNT_JSON"]
+        service_account_info_str = next((os.environ.get(k) for k in possible_keys if os.environ.get(k)), None)
+        
+        if not service_account_info_str:
+            return {"error": "Google Cloud service account secret missing in Modal."}
+            
+        creds_info = json.loads(service_account_info_str)
+        if "google_cloud" in creds_info:
+            creds_info = creds_info["google_cloud"]
+            
+        creds = Credentials.from_service_account_info(
+            creds_info, 
+            scopes=['https://www.googleapis.com/auth/drive.readonly']
+        )
+        drive_service = build('drive', 'v3', credentials=creds)
+        
+        # 3. Export Doc as HTML
+        # text/html ensures headers, bolding, and lists are retained nicely
+        print(f"Downloading Google Doc {doc_id} as HTML...")
+        try:
+            html_content = drive_service.files().export(fileId=doc_id, mimeType='text/html').execute()
+            html_str = html_content.decode('utf-8')
+        except Exception as e:
+            return {"error": f"Failed to download from Google Drive API: {str(e)}"}
+            
+        # 4. Strip Meta Table & Convert to Markdown
+        # The modal pipeline generates docs with a Meta table at the top. We must try to remove it so it doesn't get published to WordPress.
+        # It's inside a <table ... >...</table>. We can use a simple regex replacing the first table, or markdownify and remove it.
+        # Markdownify handles structural HTML.
+        converted_md = markdownify.markdownify(html_str, heading_style="ATX", bypass_tables=False)
+        
+        # Filter out the top Meta table if it exists
+        lines = converted_md.split('\n')
+        filtered_lines = []
+        skip_table = False
+        
+        for line in lines:
+            if line.strip().startswith('| Meta | Details |'):
+                skip_table = True
+            
+            if skip_table:
+                # The table might be built of |...| rows
+                # Also skip the CSS block often injected by Google docs
+                if not line.strip().startswith('|'):
+                    skip_table = False  # Left the table
+                    # Wait, if we just left the table, we don't append this blank line
+                    continue
+                continue
+                
+            # Filter out random CSS blocks that Google Docs exports inside `<style>`
+            if line.strip().startswith('<!--') or '/* body {' in line or '} */' in line:
+                continue
+                
+            filtered_lines.append(line)
+            
+        final_md = '\n'.join(filtered_lines).strip()
+        
+        # 5. Update Asset
+        supabase.table("assets").update({
+            "content_markdown": final_md
+        }).eq("id", asset_id).execute()
+        
+        return {"success": True, "asset_id": asset_id}
+        
+    except Exception as e:
+        print(f"CRITICAL ERROR in sync_asset_from_doc: {str(e)}")
         return {"error": str(e)}
