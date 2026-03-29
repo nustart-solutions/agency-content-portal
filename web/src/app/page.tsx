@@ -36,7 +36,7 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: radial-gradient(circle at center, #0d243a 0%, var(--background) 100%);
+          background: radial-gradient(circle at center, #1b120c 0%, var(--background) 100%);
           position: relative;
           overflow: hidden;
         }
@@ -130,7 +130,7 @@ export default function Home() {
         .input-group input:focus {
           outline: none;
           border-color: var(--primary);
-          box-shadow: 0 0 0 2px rgba(139,92,246,0.25);
+          box-shadow: 0 0 0 2px var(--primary-shadow-1);
         }
 
         .w-full {

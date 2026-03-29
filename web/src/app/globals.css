@@ -1,21 +1,25 @@
 :root {
-  --background: #091826; /* Dark Navy */
-  --foreground: #e9ece7; /* Light Grey */
+  --background: #09090b;
+  --foreground: #fafafa;
   --primary: #e57a25; /* Orange */
   --primary-hover: #cd6c1f;
-  --surface: #0d243a; /* Lighter navy for cards */
-  --border: #173b5e;
-  --muted: #80a4c0;
+  --surface: #18181b;
+  --border: #27272a;
+  --muted: #a1a1aa;
+  --primary-shadow-1: #e57a2563; /* 0.39 opacity orange */
+  --primary-shadow-2: #e57a253b; /* 0.23 opacity orange */
 }
 
 [data-theme='light'] {
-  --background: #e9ece7; /* Light Grey */
-  --foreground: #091826; /* Dark Navy */
+  --background: #f8fafc;
+  --foreground: #09090b;
   --primary: #00b2dc; /* Light Blue */
   --primary-hover: #009cc2;
-  --surface: #ffffff; /* Crisp White */
-  --border: #d1d6cf;
-  --muted: #586f85;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --muted: #64748b;
+  --primary-shadow-1: #00b2dc63;
+  --primary-shadow-2: #00b2dc3b;
 }
 
 [data-theme='light'] .glass-panel {
@@ -160,13 +164,13 @@ a {
 .btn-primary {
   background-color: var(--primary);
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.39);
+  box-shadow: 0 4px 14px 0 var(--primary-shadow-1);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.23);
+  box-shadow: 0 6px 20px var(--primary-shadow-2);
 }
 
 .btn-secondary {
