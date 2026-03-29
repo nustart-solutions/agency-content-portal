@@ -20,8 +20,7 @@ begin
   if v_user_id is not null then
     select exists (
       select 1 from public.user_roles ur
-      join public.brands b on (ur.role = 'agency_admin' or b.organization_id = ur.organization_id or b.id = ur.brand_id)
-      where ur.user_id = v_user_id and b.id = p_brand_id
+      where ur.user_id = v_user_id and ur.role = 'agency_admin'
     ) into v_has_access;
     
     if not v_has_access then

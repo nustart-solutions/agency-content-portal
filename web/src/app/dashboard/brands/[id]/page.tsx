@@ -24,15 +24,13 @@ export default async function BrandDashboardPage({
 
   let isAgencyAdmin = false
   if (userId) {
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'agency_admin')
-      .maybeSingle()
+    const { data: hasAdminAccess, error } = await supabase
+      .rpc('is_agency_admin', { check_user_id: userId })
       
-    if (roleData) {
+    if (hasAdminAccess) {
       isAgencyAdmin = true
+    } else if (error) {
+      console.error('RPC check for agency_admin failed:', error)
     }
   }
 
