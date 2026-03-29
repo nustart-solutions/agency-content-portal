@@ -114,6 +114,7 @@ export async function updateBrand(brandId: string, formData: FormData) {
   const supabase = await createClient()
   const name = formData.get('name') as string
   const logoUrl = formData.get('logo_url') as string
+  const websiteUrl = formData.get('website_url') as string
   const requiresApproval = formData.get('requires_approval') === 'on'
 
   if (!name || name.trim() === '') {
@@ -125,6 +126,7 @@ export async function updateBrand(brandId: string, formData: FormData) {
     .update({
       name: name.trim(),
       logo_url: logoUrl ? logoUrl.trim() : null,
+      website_url: websiteUrl ? websiteUrl.trim() : null,
       requires_approval: requiresApproval
     })
     .eq('id', brandId)

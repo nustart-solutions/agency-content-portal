@@ -85,6 +85,7 @@ export default async function BrandDashboardPage({
               id: brand.id,
               name: brand.name,
               logo_url: brand.logo_url,
+              website_url: brand.website_url,
               requires_approval: brand.requires_approval
             }} />
           </div>

@@ -8,6 +8,7 @@ interface EditBrandModalProps {
     id: string
     name: string
     logo_url: string | null
+    website_url: string | null
     requires_approval: boolean
   }
 }
@@ -64,6 +65,22 @@ export default function EditBrandModal({ brand }: EditBrandModalProps) {
                   defaultValue={brand.name}
                   required 
                   placeholder="e.g. Acme Shoes"
+                  style={{
+                    width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
+                    background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                  Website URL
+                </label>
+                <input 
+                  type="url" 
+                  name="website_url" 
+                  defaultValue={brand.website_url || ''}
+                  placeholder="https://example.com"
                   style={{
                     width: '100%', padding: '0.75rem 1rem', borderRadius: '0.5rem',
                     background: 'rgba(0,0,0,0.2)', border: '1px solid var(--border)', color: 'var(--foreground)'
