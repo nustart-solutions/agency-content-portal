@@ -24,6 +24,7 @@ export default function SidebarNav({
   const [activeBrandId, setActiveBrandId] = useState<string | null>(userBrandId)
   const [taxonomy, setTaxonomy] = useState<Group[]>([])
   const [isLoadingTree, setIsLoadingTree] = useState(false)
+  const [taxonomyError, setTaxonomyError] = useState<string | null>(null)
 
   // Accordion State
   const [openGroupId, setOpenGroupId] = useState<string | null>(null)
@@ -55,10 +56,18 @@ export default function SidebarNav({
       if (targetBrandId && isMounted) {
         setActiveBrandId(targetBrandId)
         setIsLoadingTree(true)
-        const treeData = await getBrandTaxonomy(targetBrandId)
-        if (isMounted) {
-          setTaxonomy(treeData || [])
-          setIsLoadingTree(false)
+        try {
+          const treeData = await getBrandTaxonomy(targetBrandId)
+          if (isMounted) {
+            setTaxonomy(treeData || [])
+            setIsLoadingTree(false)
+          }
+        } catch (err: any) {
+          if (isMounted) {
+            setTaxonomyError(err.message)
+            setTaxonomy([])
+            setIsLoadingTree(false)
+          }
         }
       } else if (!targetBrandId && isMounted) {
         setActiveBrandId(null)
@@ -99,7 +108,14 @@ export default function SidebarNav({
           {isLoadingTree ? (
             <div style={{ padding: '0 1rem', fontSize: '0.85rem', color: 'var(--muted)', opacity: 0.7 }}>Loading tree...</div>
           ) : taxonomy.length === 0 ? (
-            <div style={{ padding: '0 1rem', fontSize: '0.85rem', color: 'var(--muted)', opacity: 0.7 }}>No campaigns found.</div>
+            <div style={{ padding: '0 1rem', fontSize: '0.85rem', color: 'var(--muted)', opacity: 0.7 }}>
+              <div style={{ marginBottom: '0.5rem' }}>No campaigns found.</div>
+              {/* Debug UI block */}
+              <div style={{ fontSize: '0.65rem', wordBreak: 'break-all', color: 'red' }}>
+                ID checked: {activeBrandId}<br/>
+                {taxonomyError ? `Error: ${taxonomyError}` : 'Status: Query completed, but no records exist.'}
+              </div>
+            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {taxonomy.map(group => {

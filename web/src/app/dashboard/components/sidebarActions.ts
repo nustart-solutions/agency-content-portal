@@ -9,15 +9,11 @@ export async function getBrandTaxonomy(brandId: string) {
   const { data: groups, error } = await supabase
     .from('campaign_groups')
     .select(`
-      id,
-      name,
+      *,
       campaign_subgroups (
-        id,
-        name,
+        *,
         campaigns (
-          id,
-          name,
-          status,
+          *,
           assets ( id )
         )
       )
@@ -27,7 +23,8 @@ export async function getBrandTaxonomy(brandId: string) {
 
   if (error) {
     console.error('Error fetching taxonomy for sidebar:', error)
-    return null
+    // Actually throw the error to pass the message to the Client Component so we can read it on the frontend.
+    throw new Error(error.message)
   }
 
   // Deeply sort the returned nested data by created_at or name if applicable, 
