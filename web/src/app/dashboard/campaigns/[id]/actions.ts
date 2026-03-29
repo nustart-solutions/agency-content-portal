@@ -223,3 +223,80 @@ export async function deleteCampaign(campaignId: string, brandId: string) {
   // Next.js redirect gracefully interrupts Server Action flow and forces 302 navigation client-side
   redirect(`/dashboard/brands/${brandId}`)
 }
+
+export async function bulkCreateSpokeAssets(campaignId: string, anchorId: string, channels: string[], publishedUrl: string) {
+  const supabase = await createClient()
+
+  // Find the anchor to copy its title as a base, and to check approval requirements
+  const { data: anchorData, error: anchorError } = await supabase
+    .from('assets')
+    .select('title, campaigns(name, campaign_subgroups(campaign_groups(brand_id, brands(name, requires_approval))))')
+    .eq('id', anchorId)
+    .single()
+
+  if (anchorError || !anchorData) {
+    return { error: 'Anchor asset not found' }
+  }
+
+  // Update anchor's published URL
+  await supabase
+    .from('assets')
+    .update({ published_url: publishedUrl })
+    .eq('id', anchorId)
+
+  const requiresApproval = anchorData.campaigns?.campaign_subgroups?.campaign_groups?.brands?.requires_approval ?? true
+  const brandName = anchorData.campaigns?.campaign_subgroups?.campaign_groups?.brands?.name || 'Unknown Brand'
+  const campaignName = anchorData.campaigns?.name || 'Unknown Campaign'
+  const baseTitle = anchorData.title
+
+  // Create each spoke
+  for (const channel of channels) {
+    let assetType = 'social_post'
+    if (channel === 'gmb_post') assetType = 'gmb_post'
+    if (channel === 'email_newsletter') assetType = 'email_newsletter'
+    
+    // 1. Insert into database
+    const { data: newAsset, error: insertError } = await supabase
+      .from('assets')
+      .insert({
+        campaign_id: campaignId,
+        title: `${channel.replace('_', ' ').toUpperCase()} Spinoff - ${baseTitle}`,
+        asset_type: assetType,
+        channel: channel,
+        is_anchor: false,
+        anchor_asset_id: anchorId,
+        status: 'in_progress', // immediately send to generator
+        deep_research: false // Spokes use repurposing, not fresh research
+      })
+      .select('id')
+      .single()
+
+    if (insertError) {
+      console.error(`Error inserting spoke for ${channel}:`, insertError)
+      continue;
+    }
+
+    // 2. Trigger Webhook async
+    const modalUrl = process.env.MODAL_GENERATE_ASSET_URL || 'https://example.modal.run'
+    try {
+      fetch(modalUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          asset_id: newAsset.id,
+          requires_approval: requiresApproval,
+          title: `${channel.replace('_', ' ').toUpperCase()} Spinoff - ${baseTitle}`,
+          asset_type: assetType,
+          deep_research: false,
+          brand_name: brandName,
+          campaign_name: campaignName
+        })
+      }).catch(e => console.error(`Modal fetch failed for ${channel}:`, e))
+    } catch (err) {
+      console.error(`Modal fetch setup failed for ${channel}:`, err)
+    }
+  }
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  return { success: true }
+}

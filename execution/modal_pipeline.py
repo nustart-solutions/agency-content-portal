@@ -140,7 +140,27 @@ def generate_asset(data: Dict[str, Any]):
         # 4. Generate Content (The "SEOMachine" hook)
         print("== Generating Final Content ==")
         
-        prompt = f"""You are a master SEO content generator. 
+        anchor_context = None
+        if asset.get("anchor_asset_id"):
+            anchor_res = supabase.table("assets").select("content_markdown, published_url").eq("id", asset["anchor_asset_id"]).single().execute()
+            if anchor_res.data:
+                anchor_context = anchor_res.data
+
+        if anchor_context:
+            print("== Executing Spoke Repurposing ==")
+            prompt = f"""You are a master Social Media Manager and Copywriter.
+Your ONLY goal is to repurpose the following approved Anchor Article into a highly-engaging {asset['asset_type']} for {asset['channel']}.
+
+{compiled_context}
+
+--- APPROVED ANCHOR ARTICLE ---
+{anchor_context.get('content_markdown', '')[:200000]}
+
+Task: Write the {asset['channel']} post summarizing the core value of the anchor article. 
+You MUST explicitly end the post with a strong call to action linking exactly to this URL: {anchor_context.get('published_url', 'this link')}.
+Return raw text/markdown (no markdown blocks like ```markdown)."""
+        else:
+            prompt = f"""You are a master SEO content generator. 
 
 {compiled_context}
 {deep_research_context}

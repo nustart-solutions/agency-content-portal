@@ -4,6 +4,7 @@ import CreateAssetModal from './CreateAssetModal'
 import AssetStatusSelect from './AssetStatusSelect'
 import AssetExecutionActions from './AssetExecutionActions'
 import DeleteCampaignButton from './DeleteCampaignButton'
+import CreateSpokesModal from './CreateSpokesModal'
 
 export default async function CampaignPage({ 
   params 
@@ -107,6 +108,9 @@ export default async function CampaignPage({
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {(asset.status === 'approved' || asset.status === 'published') && (
+                      <CreateSpokesModal anchorId={asset.id} campaignId={campaign.id} title={asset.title} />
+                    )}
                     <AssetExecutionActions assetId={asset.id} campaignId={campaign.id} status={asset.status} />
                     <AssetStatusSelect assetId={asset.id} campaignId={campaign.id} currentStatus={asset.status} />
                   </div>
