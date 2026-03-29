@@ -36,7 +36,7 @@ export default function Home() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: radial-gradient(circle at center, #1f1a30 0%, var(--background) 100%);
+          background: radial-gradient(circle at center, #0d243a 0%, var(--background) 100%);
           position: relative;
           overflow: hidden;
         }
