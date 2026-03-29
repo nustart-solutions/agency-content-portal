@@ -49,7 +49,7 @@
 }
 
 .sidebar-logo-img {
-  max-width: 200px;
+  max-width: 80px;
   height: auto;
   margin-left: -0.25rem;
   transition: opacity 0.2s ease;
