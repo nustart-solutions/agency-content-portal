@@ -106,6 +106,11 @@ export default async function CampaignPage({
                         </a>
                       )}
                     </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.4rem', display: 'flex', gap: '0.75rem', alignItems: 'center', opacity: 0.8 }}>
+                      {asset.created_at && <span>Created: {new Date(asset.created_at).toLocaleDateString()}</span>}
+                      {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
+                      {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {(asset.status === 'approved' || asset.status === 'published') && (
@@ -152,6 +157,11 @@ export default async function CampaignPage({
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                         </a>
                       )}
+                    </div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '0.4rem', display: 'flex', gap: '0.75rem', alignItems: 'center', opacity: 0.8 }}>
+                      {asset.created_at && <span>Created: {new Date(asset.created_at).toLocaleDateString()}</span>}
+                      {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
+                      {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
