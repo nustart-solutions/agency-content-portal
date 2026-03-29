@@ -19,7 +19,7 @@ export default async function GlobalTemplatesPage() {
     .eq('user_id', user.id)
     .single()
 
-  if (!roleData || roleData.role === 'brand_user') {
+  if (roleData && roleData.role === 'brand_user') {
     redirect('/dashboard') // unauthorized
   }
 
