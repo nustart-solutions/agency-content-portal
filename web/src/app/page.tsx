@@ -6,8 +6,10 @@ export default function Home() {
     <main className="dashboard-login-wrapper">
       <div className="login-container glass-panel">
         <div className="login-header">
-          <div className="logo-pulse"></div>
-          <h1>Agency Portal</h1>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '1.5rem' }}>
+            <img src="https://nustart.solutions/wp-content/uploads/2026/03/VA-darktheme.png" alt="ValueArc Agency Portal" className="sidebar-logo-img sidebar-logo-dark" style={{ maxWidth: '240px' }} />
+            <img src="https://nustart.solutions/wp-content/uploads/2026/03/VA-light-theme.png" alt="ValueArc Agency Portal" className="sidebar-logo-img sidebar-logo-light" style={{ maxWidth: '240px' }} />
+          </div>
           <p>Sign in to track your brand campaigns.</p>
         </div>
         
@@ -73,30 +75,6 @@ export default function Home() {
         .login-header {
           text-align: center;
           margin-bottom: 2.5rem;
-        }
-
-        .logo-pulse {
-          width: 52px;
-          height: 52px;
-          background: linear-gradient(135deg, var(--primary), var(--primary-hover));
-          border-radius: 14px;
-          margin: 0 auto 1.5rem auto;
-          box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-          animation: pulse 2.5s infinite;
-        }
-
-        @keyframes pulse {
-          0% { box-shadow: 0 0 0 0 rgba(139,92,246, 0.4); }
-          50% { box-shadow: 0 0 0 12px rgba(139,92,246, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(139,92,246, 0); }
-        }
-
-        .login-header h1 {
-          font-size: 1.85rem;
-          font-weight: 600;
-          margin-bottom: 0.5rem;
-          letter-spacing: -0.025em;
-          color: var(--foreground);
         }
 
         .login-header p {
