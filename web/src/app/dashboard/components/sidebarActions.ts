@@ -53,5 +53,15 @@ export async function getBrandIdFromCampaign(campaignId: string) {
 
   if (error || !data) return null
   
-  return data.campaign_subgroups?.campaign_groups?.brand_id || null
+  // Depending on how Supabase types the 1-to-many relationship in TypeScript, it may return as an array or object
+  try {
+    const subgroup = Array.isArray(data.campaign_subgroups) ? data.campaign_subgroups[0] : data.campaign_subgroups;
+    if (!subgroup) return null;
+    
+    // @ts-ignore - Supabase type generation doesn't always nail deep relations
+    const group = Array.isArray(subgroup.campaign_groups) ? subgroup.campaign_groups[0] : subgroup.campaign_groups;
+    return group?.brand_id || null;
+  } catch(e) {
+    return null;
+  }
 }
