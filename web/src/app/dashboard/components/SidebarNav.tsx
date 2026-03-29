@@ -94,7 +94,7 @@ export default function SidebarNav({
   }
 
   return (
-    <nav className="sidebar-nav" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
+    <nav className="sidebar-nav hide-scrollbar" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
       
       {/* ----------------------------- */}
       {/* DYNAMIC CAMPAIGN TREE          */}
@@ -120,6 +120,10 @@ export default function SidebarNav({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {taxonomy.map(group => {
                 const isGroupOpen = openGroupId === group.id
+                // Calculate total assets for the Group
+                const groupAssetCount = group.campaign_subgroups?.reduce((subAcc, sub) => {
+                  return subAcc + (sub.campaigns?.reduce((campAcc, camp) => campAcc + (camp.assets?.length || 0), 0) || 0)
+                }, 0) || 0
                 
                 return (
                   <div key={group.id} className="sidebar-tree-node">
@@ -132,20 +136,23 @@ export default function SidebarNav({
                       <button 
                         onClick={() => handleGroupClick(group.id)}
                         style={{
-                          display: 'flex', alignItems: 'center', flex: 1,
+                          display: 'flex', alignItems: 'center', flex: 1, justifyContent: 'space-between',
                           background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
                           color: isGroupOpen ? 'var(--primary)' : 'var(--foreground)',
                           fontWeight: isGroupOpen ? 600 : 500,
                           fontSize: '0.9rem'
                         }}
                       >
-                        <span style={{ marginRight: '0.5rem', transform: isGroupOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.7rem' }}>▶</span>
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                          <span style={{ marginRight: '0.5rem', transform: isGroupOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.7rem' }}>▶</span>
+                          <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{group.name}</span>
+                        </div>
+                        {groupAssetCount > 0 && !isGroupOpen && (
+                           <span style={{ background: 'var(--border)', color: 'var(--muted)', padding: '1px 6px', borderRadius: '10px', fontSize: '0.65rem', marginLeft: '8px' }}>
+                             {groupAssetCount}
+                           </span>
+                        )}
                       </button>
-                      
-                      {isGroupOpen && (
-                         <div style={{ transform: 'scale(0.8)', opacity: 0.8 }}><CreateSubgroupModal brandId={activeBrandId} groupId={group.id} /></div>
-                      )}
                     </div>
 
                     {/* Group Children (Subgroups) */}
@@ -153,6 +160,8 @@ export default function SidebarNav({
                       <div style={{ paddingLeft: '1.25rem', marginTop: '2px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         {group.campaign_subgroups.map(subgroup => {
                           const isSubgroupOpen = openSubgroupId === subgroup.id
+                          // Calculate total assets for the Subgroup
+                          const subgroupAssetCount = subgroup.campaigns?.reduce((acc, camp) => acc + (camp.assets?.length || 0), 0) || 0
                           
                           return (
                             <div key={subgroup.id}>
@@ -160,19 +169,23 @@ export default function SidebarNav({
                                 <button
                                   onClick={() => handleSubgroupClick(subgroup.id)}
                                   style={{
-                                    display: 'flex', alignItems: 'center', flex: 1,
+                                    display: 'flex', alignItems: 'center', flex: 1, justifyContent: 'space-between',
                                     background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left',
                                     color: 'var(--foreground)', opacity: isSubgroupOpen ? 1 : 0.8,
                                     fontWeight: isSubgroupOpen ? 500 : 400,
                                     fontSize: '0.85rem'
                                   }}
                                 >
-                                  <span style={{ marginRight: '0.4rem', transform: isSubgroupOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.6rem' }}>▶</span>
-                                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subgroup.name}</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+                                    <span style={{ marginRight: '0.4rem', transform: isSubgroupOpen ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.2s', display: 'inline-block', fontSize: '0.6rem' }}>▶</span>
+                                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subgroup.name}</span>
+                                  </div>
+                                  {subgroupAssetCount > 0 && !isSubgroupOpen && (
+                                     <span style={{ background: 'var(--border)', color: 'var(--muted)', padding: '1px 6px', borderRadius: '10px', fontSize: '0.65rem', marginLeft: '6px' }}>
+                                       {subgroupAssetCount}
+                                     </span>
+                                  )}
                                 </button>
-                                {isSubgroupOpen && (
-                                   <div style={{ transform: 'scale(0.8)', opacity: 0.8 }}><CreateCampaignModal brandId={activeBrandId} subgroupId={subgroup.id} /></div>
-                                )}
                               </div>
 
                               {/* Subgroup Children (Campaigns) */}
