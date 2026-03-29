@@ -82,6 +82,22 @@ export default async function BrandDashboardPage({
     }
   }) || [];
 
+  // 4. Calculate high-level metrics for the new clean dashboard
+  const totalGroups = sortedGroups.length;
+  let totalSubgroups = 0;
+  let totalCampaigns = 0;
+  let totalAssets = 0;
+  
+  sortedGroups.forEach((g: any) => {
+    totalSubgroups += g.campaign_subgroups?.length || 0;
+    g.campaign_subgroups?.forEach((sg: any) => {
+      totalCampaigns += sg.campaigns?.length || 0;
+      sg.campaigns?.forEach((c: any) => {
+        totalAssets += c.assets?.length || 0;
+      });
+    });
+  });
+
   return (
     <div className="section-container">
       <div className="section-header">
@@ -114,8 +130,28 @@ export default async function BrandDashboardPage({
       </div>
 
       <p className="section-description" style={{ marginBottom: '2.5rem' }}>
-        Manage the unified master taxonomy of Groups, Subgroups, and active Campaigns for this brand.
+        Welcome to the {brand.name} dashboard. Use the sidebar to navigate your content pipeline.
       </p>
+
+      {/* High-Level Overview Metrics */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem' }}>{totalGroups}</div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Groups</div>
+        </div>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem' }}>{totalSubgroups}</div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subgroups</div>
+        </div>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem' }}>{totalCampaigns}</div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Campaigns</div>
+        </div>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.5rem' }}>{totalAssets}</div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Assets Tracked</div>
+        </div>
+      </div>
 
       {/* Global Scoreboard Render */}
       <Scoreboard brandId={brandId} />
@@ -150,102 +186,6 @@ export default async function BrandDashboardPage({
         )}
       </div>
 
-      {/* Master Content Pipeline Taxonomy */}
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Content Pipeline</h2>
-        </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {(!sortedGroups || sortedGroups.length === 0) ? (
-            <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
-              No Groups created. Start by organizing the strategy.
-            </div>
-          ) : (
-            sortedGroups.map((group: any) => (
-              <details key={group.id} open className="glass-panel" style={{ padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <summary style={{ fontSize: '1.2rem', fontWeight: 600, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>Campaign Group: {group.name}</span>
-                  <CreateSubgroupModal brandId={brandId} groupId={group.id} />
-                </summary>
-                
-                <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', paddingLeft: '1rem', borderLeft: '2px solid var(--border)' }}>
-                  {(!group.campaign_subgroups || group.campaign_subgroups.length === 0) ? (
-                    <p style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>No subgroups exist yet.</p>
-                  ) : (
-                    group.campaign_subgroups.map((subgroup: any) => (
-                      <details key={subgroup.id} open style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                        <summary style={{ fontSize: '1rem', fontWeight: 500, cursor: 'pointer', outline: 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>↳ {subgroup.name}</span>
-                          <CreateCampaignModal brandId={brandId} subgroupId={subgroup.id} />
-                        </summary>
-
-                        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          {(!subgroup.campaigns || subgroup.campaigns.length === 0) ? (
-                            <p style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>No active campaigns.</p>
-                          ) : (
-                            subgroup.campaigns.map((camp: any) => {
-                              // Find any published anchor asset (has URL or is marked published)
-                              const publishedAnchor = camp.assets?.find((a: any) => 
-                                (a.is_anchor || a.asset_type?.includes('anchor') || a.asset_type === 'blog_post') && 
-                                (a.published_url || a.status === 'published' || a.status === 'staged')
-                              );
-
-                              // Fallback: If no strict anchor matched, but there IS an asset with a URL, show that.
-                              const fallbackPublished = publishedAnchor || camp.assets?.find((a: any) => !!a.published_url);
-                              const finalDisplayAsset = fallbackPublished;
-
-                              return (
-                            <div key={camp.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', background: 'var(--glass-bg)', border: '1px solid var(--border)', borderRadius: '6px' }}>
-                              <div style={{ flex: 1, minWidth: 0, paddingRight: '1rem' }}>
-                                <Link href={`/dashboard/campaigns/${camp.id}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block', marginBottom: '0.25rem' }}>
-                                  <strong>{camp.name}</strong>
-                                </Link>
-                                
-                                {finalDisplayAsset?.published_url ? (
-                                  <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                    <span style={{ color: 'var(--text-color)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
-                                      {finalDisplayAsset.title}
-                                    </span>
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                      <span style={{ color: 'var(--primary)' }}>
-                                        Published: {finalDisplayAsset.published_at || finalDisplayAsset.created_at ? new Date(finalDisplayAsset.published_at || finalDisplayAsset.created_at).toLocaleDateString() : 'TBD'}
-                                      </span>
-                                      <a 
-                                        href={finalDisplayAsset.published_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        style={{ color: '#00a3ff', textDecoration: 'underline', fontWeight: 500 }}
-                                      >
-                                        View Live ↗
-                                      </a>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                                    Target: {camp.target_publish_date ? new Date(camp.target_publish_date).toLocaleDateString() : 'TBD'}
-                                  </span>
-                                )}
-                              </div>
-                              <Link href={`/dashboard/campaigns/${camp.id}`} style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0, textDecoration: 'none', color: 'inherit' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
-                                  {camp.assets?.length || 0} Assets
-                                </span>
-                                <span style={{ color: 'var(--primary)', fontSize: '1.2rem' }}>&rarr;</span>
-                              </Link>
-                            </div>
-                          )})
-                        )}
-                      </div>
-                    </details>
-                  ))
-                )}
-              </div>
-              </details>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   )
 }
