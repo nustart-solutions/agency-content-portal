@@ -170,13 +170,13 @@ Your ONLY goal is to repurpose the following approved Anchor Article into a high
 {spoke_context}
 
 --- APPROVED ANCHOR ARTICLE ---
-{anchor_context.get('content_markdown', '')[:200000]}
+{(anchor_context.get('content_markdown') or '')[:200000]}
 
 --- CHANNEL CONSTRAINTS ---
 {template_instructions}
 
 Task: Write the {asset['channel']} post extracting the core value of the anchor article. 
-You MUST explicitly end the post with a strong call to action linking exactly to this URL: {anchor_context.get('published_url', 'this link')}.
+You MUST explicitly end the post with a strong call to action linking exactly to this URL: {anchor_context.get('published_url') or 'this link'}.
 Return raw text/markdown (no markdown blocks like ```markdown)."""
         else:
             prompt = f"""You are a master SEO content generator. 
