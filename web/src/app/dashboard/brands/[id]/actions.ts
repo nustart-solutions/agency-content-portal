@@ -169,3 +169,34 @@ export async function triggerGenerateBrandContext(brandId: string, websiteUrl: s
   revalidatePath(`/dashboard/brands/${brandId}`)
   return { success: true }
 }
+
+export async function updateBrandCredentials(brandId: string, formData: FormData) {
+  const supabase = await createClient()
+  const wp_url = formData.get('wp_url') as string
+  const wp_username = formData.get('wp_username') as string
+  const wp_password = formData.get('wp_password') as string
+
+  const credentials: any = {}
+  
+  if (wp_url || wp_username || wp_password) {
+    credentials.wordpress = {
+      url: wp_url?.trim() || '',
+      username: wp_username?.trim() || '',
+      password: wp_password?.trim() || '',
+      auth_type: 'application_password'
+    }
+  }
+
+  const { error } = await supabase.rpc('set_brand_credentials', {
+    p_brand_id: brandId,
+    p_credentials_json: JSON.stringify(credentials)
+  })
+
+  if (error) {
+    console.error('Credential Update Error:', error.message)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/brands/${brandId}`)
+  return { success: true }
+}

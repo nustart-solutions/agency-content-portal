@@ -317,3 +317,70 @@ export async function bulkCreateSpokeAssets(campaignId: string, anchorId: string
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
   return { success: true }
 }
+
+export async function bulkImportPublishedAnchors(campaignId: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const rawText = formData.get('raw_text') as string
+  const assetType = formData.get('asset_type') as string
+  const channel = formData.get('channel') as string
+
+  if (!rawText || !assetType || !channel) {
+    return { error: 'Missing required configuration.' }
+  }
+
+  // Parse lines. Exclude empty ones.
+  const lines = rawText.split('\n').filter(line => line.trim() !== '')
+  
+  const inserts = []
+
+  for (const line of lines) {
+    // Attempt to split by tab (Excel/Sheets defaults to tab separation)
+    const columns = line.split('\t').map(c => c.trim())
+    
+    // We expect at least a Title
+    const title = columns[0]
+    if (!title) continue
+    
+    // URL might be column 2
+    const publishedUrl = columns[1] || null
+    
+    // Date might be column 3. Default to now if invalid or missing.
+    let publishedAt = new Date().toISOString()
+    if (columns[2]) {
+      const parsedDate = new Date(columns[2])
+      if (!isNaN(parsedDate.getTime())) {
+        publishedAt = parsedDate.toISOString()
+      }
+    }
+
+    inserts.push({
+      campaign_id: campaignId,
+      title: title,
+      asset_type: assetType,
+      channel: channel,
+      status: 'published',
+      is_anchor: true,
+      published_url: publishedUrl,
+      published_at: publishedAt,
+      // Since it's imported as published, we immediately mark it approved too so metrics match logic implicitly
+      approved_at: publishedAt
+    })
+  }
+
+  if (inserts.length === 0) {
+    return { error: 'No valid rows parsed. Make sure you pasted data.' }
+  }
+
+  const { error } = await supabase
+    .from('assets')
+    .insert(inserts)
+
+  if (error) {
+    console.error('Error importing assets:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  return { success: true }
+}
