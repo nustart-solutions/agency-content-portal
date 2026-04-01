@@ -102,7 +102,7 @@ export default function SidebarNav({
       {activeBrandId && (
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ marginBottom: '0.75rem', fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.05em', padding: '0 1rem', fontWeight: 600 }}>
-            Content Pipeline
+            Active Groups
           </div>
           
           {isLoadingTree ? (

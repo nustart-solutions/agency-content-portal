@@ -164,8 +164,42 @@ def generate_asset(data: Dict[str, Any]):
                 print(f"  -> Could not fetch template for {channel}, falling back to default.")
                 template_instructions = f"- Format: Standard engaging social post for {channel}.\n- Focus: Summarizing the core value of the anchor article."
 
+            is_gmb = channel in ['gmb', 'gmb_post', 'google my business', 'google_my_business', 'google-my-business', 'gbp', 'google business profile', 'google-business-profile']
+            is_x = channel in ['x', 'x_post', 'twitter', 'twitter_post', 'tweet', 'tweet_post']
+            is_facebook = channel in ['facebook', 'facebook_post', 'fb', 'fb_post']
+            
+            if is_gmb:
+                task_instruction = f"""Task: Create THREE (3) distinct Google My Business posts based on the anchor article.
+Post 1: A general summary of the anchor content's core value.
+Posts 2-3: Each focuses on 1 or 2 specific key points from the anchor doc.
+Length Constraint: Each post should be highly detailed and closer to the 1500 character maximum.
+Formatting: Separate each post clearly with an H3 header. Format: ### #[Number] GOOGLE MY BUSINESS - [Compelling Headline]. Example: ### #1 GOOGLE MY BUSINESS - Fuel Your Aftermarket Growth...
+Link Requirement: EVERY post MUST end with a strong call to action linking to the anchor article.
+UTM Requirement: You MUST append UTM parameters to the anchor URL for EVERY post: ?utm_source=google&utm_campaign=gbp_post&utm_content=[custom-topic-for-this-post]
+Anchor URL to use: {anchor_context.get('published_url') or 'this link'}"""
+            elif is_x:
+                task_instruction = f"""Task: Create SIX (6) distinct X (Twitter) posts based on the anchor article.
+Constraint: Each post MUST be under 280 characters.
+Post 1: A punchy general summary of the anchor content's core value.
+Posts 2-6: Each focuses on 1 different specific key point or stat from the anchor doc.
+Formatting: Separate each post clearly with an H3 header. Format: ### #[Number] TWITTER - [Compelling Headline]. Example: ### #1 TWITTER - Fuel Your Aftermarket Growth...
+Link Requirement: EVERY post MUST include a call to action linking to the anchor article.
+UTM Requirement: You MUST append UTM parameters to the anchor URL for EVERY post: ?utm_source=twitter&utm_medium=social&utm_campaign=x_post&utm_content=[custom-topic-for-this-post]
+Anchor URL to use: {anchor_context.get('published_url') or 'this link'}"""
+            elif is_facebook:
+                task_instruction = f"""Task: Create TWO (2) distinct Facebook posts based on the anchor article.
+Post 1: A general, engaging summary of the anchor content's core value.
+Post 2: Focuses on 1 or 2 specific key points or an interesting angle from the anchor doc.
+Formatting: Separate each post clearly with an H3 header. Format: ### #[Number] FACEBOOK - [Compelling Headline]. Example: ### #1 FACEBOOK - Fuel Your Aftermarket Growth...
+Link Requirement: EVERY post MUST include a strong call to action linking to the anchor article.
+UTM Requirement: You MUST append UTM parameters to the anchor URL for EVERY post: ?utm_source=facebook&utm_medium=social&utm_campaign=fb_post&utm_content=[custom-topic-for-this-post]
+Anchor URL to use: {anchor_context.get('published_url') or 'this link'}"""
+            else:
+                task_instruction = f"""Task: Write the {asset['channel']} post extracting the core value of the anchor article.
+You MUST explicitly end the post with a strong call to action linking exactly to this URL: {anchor_context.get('published_url') or 'this link'}."""
+
             prompt = f"""You are a master Social Media Manager and Copywriter.
-Your ONLY goal is to repurpose the following approved Anchor Article into a highly-engaging {asset['asset_type']} for {asset['channel']}.
+Your ONLY goal is to repurpose the following approved Anchor Article for the {asset['channel']} channel.
 
 {spoke_context}
 
@@ -175,8 +209,10 @@ Your ONLY goal is to repurpose the following approved Anchor Article into a high
 --- CHANNEL CONSTRAINTS ---
 {template_instructions}
 
-Task: Write the {asset['channel']} post extracting the core value of the anchor article. 
-You MUST explicitly end the post with a strong call to action linking exactly to this URL: {anchor_context.get('published_url') or 'this link'}.
+{task_instruction}
+
+CRITICAL: You MUST fulfill the exact number of posts requested in the Task block above.
+CRITICAL: NEVER use the word "spin-off" or "spinoff" anywhere in your generated output.
 Return raw text/markdown (no markdown blocks like ```markdown)."""
         else:
             prompt = f"""You are a master SEO content generator. 
