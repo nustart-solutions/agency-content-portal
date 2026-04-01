@@ -246,6 +246,7 @@ export default function SidebarNav({
             <Link href="/dashboard/organizations" className="nav-link">Organizations</Link>
             {activeBrandId && <Link href={`/dashboard/brands/${activeBrandId}`} className="nav-link">Active Brand Dashboard</Link>}
             <Link href="/dashboard/reports" className="nav-link">📊 Tracking & Reports</Link>
+            {activeBrandId && <Link href={`/dashboard/brands/${activeBrandId}/calendar`} className="nav-link">📅 Brand Calendar</Link>}
           </>
         ) : (
           <>
