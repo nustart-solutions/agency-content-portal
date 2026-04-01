@@ -71,7 +71,7 @@ export default function CalendarView({ initialEvents }: { initialEvents: Event[]
       }}>
         {weekdays.map(day => (
           <div key={day} style={{ 
-            backgroundColor: '#111', 
+            backgroundColor: 'var(--surface)', 
             padding: '0.75rem', 
             textAlign: 'center', 
             fontWeight: 600, 
@@ -84,7 +84,8 @@ export default function CalendarView({ initialEvents }: { initialEvents: Event[]
 
         {blanks.map(blank => (
           <div key={`blank-${blank}`} style={{ 
-            backgroundColor: 'rgba(15, 15, 15, 0.4)', 
+            backgroundColor: 'var(--background)',
+            opacity: 0.5,
             minHeight: '120px' 
           }}></div>
         ))}
@@ -95,7 +96,7 @@ export default function CalendarView({ initialEvents }: { initialEvents: Event[]
           
           return (
             <div key={day} style={{ 
-              backgroundColor: isToday ? 'rgba(255, 255, 255, 0.05)' : '#18181A', 
+              backgroundColor: isToday ? 'var(--surface)' : 'var(--background)', 
               minHeight: '120px', 
               padding: '0.5rem',
               display: 'flex',
@@ -117,15 +118,15 @@ export default function CalendarView({ initialEvents }: { initialEvents: Event[]
                     fontSize: '0.7rem', 
                     padding: '6px 8px', 
                     borderRadius: '4px',
-                    backgroundColor: e.isPublished ? 'rgba(34, 197, 94, 0.15)' : 'rgba(156, 163, 175, 0.1)',
-                    color: e.isPublished ? '#4ade80' : '#9ca3af',
-                    border: `1px solid ${e.isPublished ? 'rgba(34, 197, 94, 0.3)' : 'rgba(156, 163, 175, 0.2)'}`,
+                    backgroundColor: e.isPublished ? 'rgba(34, 197, 94, 0.15)' : 'var(--surface)',
+                    color: 'var(--foreground)',
+                    border: `1px solid ${e.isPublished ? 'rgba(34, 197, 94, 0.4)' : 'var(--border)'}`,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis'
                   }} title={`${e.campaignName} - ${e.channel}`}>
-                    <strong style={{ display: 'block', marginBottom: '2px' }}>{e.campaignName}</strong>
-                    <span style={{ fontSize: '0.65rem', opacity: 0.8, textTransform: 'uppercase' }}>{e.channel.replace('_', ' ')}</span>
+                    <strong style={{ display: 'block', marginBottom: '2px', color: e.isPublished ? '#16a34a' : 'var(--foreground)' }}>{e.campaignName}</strong>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--muted)', textTransform: 'uppercase' }}>{e.channel.replace('_', ' ')}</span>
                   </div>
                 ))}
               </div>
