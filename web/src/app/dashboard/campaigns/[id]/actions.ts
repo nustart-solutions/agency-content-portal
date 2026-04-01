@@ -68,6 +68,23 @@ export async function updateAssetStatus(assetId: string, campaignId: string, new
   return { success: true }
 }
 
+export async function updateAssetTitle(assetId: string, campaignId: string, newTitle: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('assets')
+    .update({ title: newTitle })
+    .eq('id', assetId)
+
+  if (error) {
+    console.error('Error updating asset title:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  return { success: true }
+}
+
 export async function triggerGenerateAsset(assetId: string, campaignId: string) {
   const supabase = await createClient()
 
@@ -277,7 +294,7 @@ export async function bulkCreateSpokeAssets(campaignId: string, anchorId: string
       .from('assets')
       .insert({
         campaign_id: campaignId,
-        title: `${channel.replace('_', ' ').toUpperCase()} Spinoff - ${baseTitle}`,
+        title: `${channel.replace('_', ' ').toUpperCase()} - ${baseTitle}`,
         asset_type: assetType,
         channel: channel,
         is_anchor: false,
@@ -302,7 +319,7 @@ export async function bulkCreateSpokeAssets(campaignId: string, anchorId: string
         body: JSON.stringify({ 
           asset_id: newAsset.id,
           requires_approval: requiresApproval,
-          title: `${channel.replace('_', ' ').toUpperCase()} Spinoff - ${baseTitle}`,
+          title: `${channel.replace('_', ' ').toUpperCase()} - ${baseTitle}`,
           asset_type: assetType,
           deep_research: false,
           brand_name: brandName,

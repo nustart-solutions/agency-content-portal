@@ -5,6 +5,7 @@ import AssetStatusSelect from './AssetStatusSelect'
 import AssetExecutionActions from './AssetExecutionActions'
 import DeleteCampaignButton from './DeleteCampaignButton'
 import CreateSpokesModal from './CreateSpokesModal'
+import EditableAssetTitle from './EditableAssetTitle'
 
 export default async function CampaignPage({ 
   params 
@@ -89,11 +90,7 @@ export default async function CampaignPage({
               {anchorAssets.map(asset => (
                 <div key={asset.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 500 }}>
-                      <Link href={`/dashboard/assets/${asset.id}`} style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }} className="hover:opacity-80">
-                        {asset.title}
-                      </Link>
-                    </h3>
+                    <EditableAssetTitle assetId={asset.id} campaignId={campaign.id} initialTitle={asset.title} />
                     <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.45rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.asset_type.replace('_', ' ').toUpperCase()}
@@ -148,11 +145,7 @@ export default async function CampaignPage({
               {supportAssets.map(asset => (
                 <div key={asset.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <div>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 500 }}>
-                      <Link href={`/dashboard/assets/${asset.id}`} style={{ color: 'inherit', textDecoration: 'none', cursor: 'pointer' }} className="hover:opacity-80">
-                        {asset.title}
-                      </Link>
-                    </h3>
+                    <EditableAssetTitle assetId={asset.id} campaignId={campaign.id} initialTitle={asset.title} />
                     <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '0.45rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.asset_type.replace('_', ' ').toUpperCase()}
