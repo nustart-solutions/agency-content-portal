@@ -153,6 +153,7 @@ export default function SidebarNav({
                            </span>
                         )}
                       </button>
+                      <CreateSubgroupModal brandId={activeBrandId} groupId={group.id} iconOnly={true} />
                     </div>
 
                     {/* Group Children (Subgroups) */}
@@ -186,6 +187,7 @@ export default function SidebarNav({
                                      </span>
                                   )}
                                 </button>
+                                <CreateCampaignModal brandId={activeBrandId} subgroupId={subgroup.id} iconOnly={true} />
                               </div>
 
                               {/* Subgroup Children (Campaigns) */}

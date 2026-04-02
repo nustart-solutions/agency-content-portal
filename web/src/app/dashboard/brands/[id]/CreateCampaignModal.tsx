@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { createCampaign } from './actions'
 
-export default function CreateCampaignModal({ brandId, subgroupId }: { brandId: string, subgroupId: string }) {
+export default function CreateCampaignModal({ brandId, subgroupId, iconOnly = false }: { brandId: string, subgroupId: string, iconOnly?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -26,10 +26,14 @@ export default function CreateCampaignModal({ brandId, subgroupId }: { brandId: 
   return (
     <>
       <button 
-        style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-        onClick={() => setIsOpen(true)}
+        style={iconOnly
+          ? { background: 'transparent', border: 'none', color: 'var(--foreground)', cursor: 'pointer', padding: '0.2rem 0.5rem', opacity: 0.5, fontSize: '1.2rem', lineHeight: '1' }
+          : { background: 'var(--primary)', color: 'white', border: 'none', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }
+        }
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(true); }}
+        title={iconOnly ? "Create Campaign" : undefined}
       >
-        + Campaign
+        {iconOnly ? '+' : '+ Campaign'}
       </button>
 
       {isOpen && (

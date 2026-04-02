@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { createCampaignSubgroup } from './actions'
 
-export default function CreateSubgroupModal({ brandId, groupId }: { brandId: string, groupId: string }) {
+export default function CreateSubgroupModal({ brandId, groupId, iconOnly = false }: { brandId: string, groupId: string, iconOnly?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -26,10 +26,14 @@ export default function CreateSubgroupModal({ brandId, groupId }: { brandId: str
   return (
     <>
       <button 
-        style={{ background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }}
-        onClick={() => setIsOpen(true)}
+        style={iconOnly 
+          ? { background: 'transparent', border: 'none', color: 'var(--foreground)', cursor: 'pointer', padding: '0.2rem 0.5rem', opacity: 0.5, fontSize: '1.2rem', lineHeight: '1' } 
+          : { background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.8rem', cursor: 'pointer' }
+        }
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsOpen(true); }}
+        title={iconOnly ? "Create Subgroup" : undefined}
       >
-        + Subgroup
+        {iconOnly ? '+' : '+ Subgroup'}
       </button>
 
       {isOpen && (
