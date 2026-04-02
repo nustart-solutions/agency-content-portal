@@ -1,18 +1,12 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import { useState, useTransition } from 'react'
 import { createCampaignSubgroup } from './actions'
 
 export default function CreateSubgroupModal({ brandId, groupId, iconOnly = false }: { brandId: string, groupId: string, iconOnly?: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -42,8 +36,8 @@ export default function CreateSubgroupModal({ brandId, groupId, iconOnly = false
         {iconOnly ? '+' : '+ Subgroup'}
       </button>
 
-      {isOpen && mounted && typeof document !== 'undefined' && createPortal(
-        <div className="modal-overlay">
+      {isOpen && (
+        <div className="modal-backdrop">
           <div className="modal-content glass-panel" style={{ padding: '2rem' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Create Subgroup</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>
@@ -84,8 +78,7 @@ export default function CreateSubgroupModal({ brandId, groupId, iconOnly = false
               </div>
             </form>
           </div>
-        </div>,
-        document.body
+        </div>
       )}
     </>
   )

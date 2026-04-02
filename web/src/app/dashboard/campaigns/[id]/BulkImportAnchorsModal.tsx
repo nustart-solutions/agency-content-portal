@@ -44,7 +44,7 @@ export default function BulkImportAnchorsModal({ campaignId }: { campaignId: str
       </button>
 
       {isOpen && (
-        <div className="modal-overlay">
+        <div className="modal-backdrop">
           <div className="modal-content glass-panel" style={{ padding: '2rem', maxWidth: '600px', width: '100%' }}>
             <h2 style={{ marginBottom: '0.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Bulk Import Published Anchors</h2>
             <p style={{ color: 'var(--muted)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>

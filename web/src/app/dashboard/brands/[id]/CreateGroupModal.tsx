@@ -30,7 +30,7 @@ export default function CreateGroupModal({ brandId }: { brandId: string }) {
       </button>
 
       {isOpen && (
-        <div className="modal-overlay">
+        <div className="modal-backdrop">
           <div className="modal-content glass-panel" style={{ padding: '2rem' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Create Campaign Group</h2>
             <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>

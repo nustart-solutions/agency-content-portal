@@ -43,7 +43,7 @@ export default function CreateAssetModal({ campaignId }: { campaignId: string })
       </button>
 
       {isOpen && (
-        <div className="modal-overlay">
+        <div className="modal-backdrop">
           <div className="modal-content glass-panel" style={{ padding: '2rem', maxWidth: '500px' }}>
             <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 600 }}>Create New Asset</h2>
 
