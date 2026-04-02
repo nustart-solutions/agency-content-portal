@@ -200,3 +200,37 @@ export async function updateBrandCredentials(brandId: string, formData: FormData
   revalidatePath(`/dashboard/brands/${brandId}`)
   return { success: true }
 }
+
+export async function deleteCampaignGroup(brandId: string, groupId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('campaign_groups')
+    .delete()
+    .eq('id', groupId)
+
+  if (error) {
+    console.error('Group Deletion Error:', error.message)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/brands/${brandId}`)
+  return { success: true }
+}
+
+export async function deleteCampaignSubgroup(brandId: string, subgroupId: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('campaign_subgroups')
+    .delete()
+    .eq('id', subgroupId)
+
+  if (error) {
+    console.error('Subgroup Deletion Error:', error.message)
+    return { error: error.message }
+  }
+
+  revalidatePath(`/dashboard/brands/${brandId}`)
+  return { success: true }
+}

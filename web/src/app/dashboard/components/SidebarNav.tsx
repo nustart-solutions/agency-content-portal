@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { getBrandTaxonomy, getBrandIdFromCampaign } from './sidebarActions'
 import CreateSubgroupModal from '../brands/[id]/CreateSubgroupModal'
 import CreateCampaignModal from '../brands/[id]/CreateCampaignModal'
+import { deleteCampaignGroup, deleteCampaignSubgroup } from '../brands/[id]/actions'
 
 type AssetCount = { id: string }
 type Campaign = { id: string, name: string, status: string, assets: AssetCount[] }
@@ -93,6 +94,31 @@ export default function SidebarNav({
     setOpenSubgroupId(prev => prev === subgroupId ? null : subgroupId)
   }
 
+  const handleDeleteGroup = async (e: React.MouseEvent, groupId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (window.confirm("Are you sure you want to delete this group and all its contents?")) {
+      if (activeBrandId) {
+        await deleteCampaignGroup(activeBrandId, groupId)
+        // Refresh local tree since revalidatePath doesn't always deeply refresh client state instantly
+        const treeData = await getBrandTaxonomy(activeBrandId)
+        setTaxonomy(treeData || [])
+      }
+    }
+  }
+
+  const handleDeleteSubgroup = async (e: React.MouseEvent, subgroupId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (window.confirm("Are you sure you want to delete this subgroup and all its campaigns?")) {
+      if (activeBrandId) {
+        await deleteCampaignSubgroup(activeBrandId, subgroupId)
+        const treeData = await getBrandTaxonomy(activeBrandId)
+        setTaxonomy(treeData || [])
+      }
+    }
+  }
+
   return (
     <nav className="sidebar-nav hide-scrollbar" style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
       
@@ -153,7 +179,16 @@ export default function SidebarNav({
                            </span>
                         )}
                       </button>
-                      <CreateSubgroupModal brandId={activeBrandId} groupId={group.id} iconOnly={true} />
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <CreateSubgroupModal brandId={activeBrandId} groupId={group.id} iconOnly={true} />
+                        <button
+                          onClick={(e) => handleDeleteGroup(e, group.id)}
+                          title="Delete Group"
+                          style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem 0.5rem', opacity: 0.5, fontSize: '0.8rem' }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
 
                     {/* Group Children (Subgroups) */}
@@ -187,7 +222,16 @@ export default function SidebarNav({
                                      </span>
                                   )}
                                 </button>
-                                <CreateCampaignModal brandId={activeBrandId} subgroupId={subgroup.id} iconOnly={true} />
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                  <CreateCampaignModal brandId={activeBrandId} subgroupId={subgroup.id} iconOnly={true} />
+                                  <button
+                                    onClick={(e) => handleDeleteSubgroup(e, subgroup.id)}
+                                    title="Delete Subgroup"
+                                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '0.2rem 0.5rem', opacity: 0.5, fontSize: '0.75rem' }}
+                                  >
+                                    🗑️
+                                  </button>
+                                </div>
                               </div>
 
                               {/* Subgroup Children (Campaigns) */}
