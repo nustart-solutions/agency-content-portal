@@ -99,7 +99,6 @@ export default async function CampaignPage({
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.channel.replace('_', ' ').toUpperCase()}
                       </span>
-                      <AssetNotificationsModal assetId={asset.id} campaignId={campaign.id} />
                       {asset.google_doc_url && (
                         <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
@@ -117,6 +116,9 @@ export default async function CampaignPage({
                       {asset.created_at && <span>Created: {new Date(asset.created_at).toLocaleDateString()}</span>}
                       {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
                       {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
+                    </div>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                      <AssetNotificationsModal assetId={asset.id} campaignId={campaign.id} />
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -155,7 +157,6 @@ export default async function CampaignPage({
                       <span style={{ background: 'var(--glass-bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
                         {asset.channel.replace('_', ' ').toUpperCase()}
                       </span>
-                      <AssetNotificationsModal assetId={asset.id} campaignId={campaign.id} />
                       {asset.google_doc_url && (
                         <a href={asset.google_doc_url} target="_blank" rel="noopener noreferrer" title="Open Google Doc" className="hover:opacity-80 transition-opacity" style={{ color: '#4285F4', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
@@ -173,6 +174,9 @@ export default async function CampaignPage({
                       {asset.created_at && <span>Created: {new Date(asset.created_at).toLocaleDateString()}</span>}
                       {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
                       {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
+                    </div>
+                    <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                      <AssetNotificationsModal assetId={asset.id} campaignId={campaign.id} />
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
