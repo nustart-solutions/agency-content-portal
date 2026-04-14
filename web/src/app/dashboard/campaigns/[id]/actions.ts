@@ -401,3 +401,57 @@ export async function bulkImportPublishedAnchors(campaignId: string, formData: F
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
   return { success: true }
 }
+
+export async function getAssetNotifications(assetId: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('asset_notifications')
+    .select('*')
+    .eq('asset_id', assetId)
+    .order('notified_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching notifications:', error)
+    return { error: error.message, data: null }
+  }
+
+  return { success: true, data }
+}
+
+export async function addAssetNotification(assetId: string, campaignId: string, formData: FormData) {
+  const supabase = await createClient()
+  
+  const recipient_email = formData.get('recipient_email') as string
+  const message = formData.get('message') as string
+
+  if (!recipient_email) {
+    return { error: 'Recipient email is required' }
+  }
+
+  // Get current user's email to use as sender
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) {
+    return { error: 'Not authenticated' }
+  }
+  const sender_email = user.email || 'unknown@user.com'
+
+  const { error } = await supabase
+    .from('asset_notifications')
+    .insert({
+      asset_id: assetId,
+      sender_email,
+      recipient_email,
+      message,
+    })
+
+  if (error) {
+    console.error('Error adding notification:', error)
+    return { error: error.message }
+  }
+
+  // Future integration: Actually send an email via Resend API here if needed.
+  
+  revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  return { success: true }
+}
