@@ -726,3 +726,127 @@ def sync_asset_from_doc(data: Dict[str, Any]):
     except Exception as e:
         print(f"CRITICAL ERROR in sync_asset_from_doc: {str(e)}")
         return {"error": str(e)}
+
+# ==========================================
+# CRON: poll_asset_notifications
+# ==========================================
+@app.function(
+    image=image,
+    secrets=[
+        modal.Secret.from_name("content-portal-secrets"),
+        modal.Secret.from_name("googlecloud-secret")
+    ],
+    schedule=modal.Cron("*/15 * * * *"),
+    timeout=300
+)
+def poll_asset_notifications():
+    import os
+    import json
+    import re
+    from datetime import datetime, timezone
+    from supabase import create_client
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+    
+    # 1. Check early exit for quiet hours (10pm - 5am EST)
+    # Get current UTC hour
+    current_utc_hour = datetime.now(timezone.utc).hour
+    # 10pm EST = 3am UTC. 5am EST = 10am UTC (Assuming UTC-5 for generic Eastern Time offset)
+    if 3 <= current_utc_hour < 10:
+        print(f"Skipping poll_asset_notifications: Current UTC hour {current_utc_hour} is within quiet hours (10pm-5am EST).")
+        return
+        
+    print("== Starting Background Sync for Google Doc Notifications ==")
+    
+    # 2. Init Supabase
+    supabase_url = os.environ.get("SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not supabase_url or not supabase_key:
+        print("ERROR: Missing SUPABASE_URL credentials")
+        return
+        
+    supabase = create_client(supabase_url, supabase_key)
+    
+    # 3. Authenticate Google API
+    possible_keys = ["service_accout_json", "service_account_json", "SERVICE_ACCOUT_JSON", "SERVICE_ACCOUNT_JSON", "GOOGLE_SERVICE_ACCOUNT_JSON"]
+    service_account_info_str = next((os.environ.get(k) for k in possible_keys if os.environ.get(k)), None)
+    
+    if not service_account_info_str:
+        print("ERROR: Google Cloud service account secret missing.")
+        return
+        
+    creds_info = json.loads(service_account_info_str)
+    if "google_cloud" in creds_info:
+        creds_info = creds_info["google_cloud"]
+        
+    creds = Credentials.from_service_account_info(
+        creds_info, 
+        scopes=['https://www.googleapis.com/auth/drive.readonly']
+    )
+    drive_service = build('drive', 'v3', credentials=creds)
+    
+    try:
+        # 4. Get active assets that have a Google Doc
+        # We only really care about fetching comments for active workflow states
+        assets_res = supabase.table("assets")\
+            .select("id, google_doc_url")\
+            .not_is("google_doc_url", "null")\
+            .in_("status", ["draft", "review", "in_progress"])\
+            .order("created_at", desc=True)\
+            .limit(100)\
+            .execute()
+            
+        assets = assets_res.data
+        if not assets:
+            print("No active assets with Google Docs found.")
+            return
+            
+        print(f"Checking {len(assets)} active documents for mentions...")
+        
+        for asset in assets:
+            doc_url = asset.get('google_doc_url')
+            match = re.search(r'/d/([a-zA-Z0-9-_]+)', doc_url)
+            if not match: continue
+            doc_id = match.group(1)
+            
+            # Fetch comments explicitly requesting mentionedEmailAddresses
+            try:
+                comments_res = drive_service.comments().list(
+                    fileId=doc_id,
+                    fields="comments(id, content, mentionedEmailAddresses, author, createdTime)"
+                ).execute()
+            except Exception as e:
+                # Graceful fail if API 404s or permission denied
+                print(f"Skipping doc {doc_id} due to API Error: {str(e)[:100]}")
+                continue
+                
+            comments = comments_res.get('comments', [])
+            
+            for comment in comments:
+                # We strictly log comments that have explicit email "@" mentions
+                mentions = comment.get('mentionedEmailAddresses', [])
+                if not mentions: continue
+                
+                comment_id = comment.get('id')
+                content = comment.get('content', '')
+                created_time = comment.get('createdTime')
+                author = comment.get('author', {})
+                sender = author.get('displayName') or author.get('emailAddress') or "Google Doc User"
+                
+                for recipient in mentions:
+                    source_id = f"gdoc_{doc_id}_{comment_id}_{recipient}"
+                    
+                    # Upsert handles uniqueness constraints safely
+                    supabase.table("asset_notifications").upsert({
+                        "asset_id": asset['id'],
+                        "sender_email": sender,
+                        "recipient_email": recipient,
+                        "message": content,
+                        "notified_at": created_time,
+                        "source_id": source_id
+                    }, on_conflict="source_id").execute()
+                    
+        print("== Sync Complete ==")
+        
+    except Exception as e:
+        print(f"CRITICAL ERROR in poll_asset_notifications: {str(e)}")
