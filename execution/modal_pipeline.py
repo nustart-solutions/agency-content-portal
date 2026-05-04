@@ -790,7 +790,6 @@ def poll_asset_notifications():
         # We only really care about fetching comments for active workflow states
         assets_res = supabase.table("assets")\
             .select("id, google_doc_url")\
-            .not_is("google_doc_url", "null")\
             .in_("status", ["draft", "review", "in_progress"])\
             .order("created_at", desc=True)\
             .limit(100)\
@@ -805,48 +804,59 @@ def poll_asset_notifications():
         
         for asset in assets:
             doc_url = asset.get('google_doc_url')
+            if not doc_url: continue
             match = re.search(r'/d/([a-zA-Z0-9-_]+)', doc_url)
             if not match: continue
             doc_id = match.group(1)
             
-            # Fetch comments explicitly requesting mentionedEmailAddresses
+            # Fetch comments explicitly requesting mentionedEmailAddresses and replies
             try:
                 comments_res = drive_service.comments().list(
                     fileId=doc_id,
-                    fields="comments(id, content, mentionedEmailAddresses, author, createdTime)"
+                    fields="comments(id, content, mentionedEmailAddresses, author, createdTime, replies(id, content, mentionedEmailAddresses, author, createdTime))"
                 ).execute()
             except Exception as e:
+                import traceback
                 # Graceful fail if API 404s or permission denied
                 print(f"Skipping doc {doc_id} due to API Error: {str(e)[:100]}")
+                traceback.print_exc()
                 continue
                 
             comments = comments_res.get('comments', [])
             
             for comment in comments:
-                # We strictly log comments that have explicit email "@" mentions
-                mentions = comment.get('mentionedEmailAddresses', [])
-                if not mentions: continue
+                # We need to check both the main comment and its replies
+                message_items = [comment] + comment.get('replies', [])
                 
-                comment_id = comment.get('id')
-                content = comment.get('content', '')
-                created_time = comment.get('createdTime')
-                author = comment.get('author', {})
-                sender = author.get('displayName') or author.get('emailAddress') or "Google Doc User"
-                
-                for recipient in mentions:
-                    source_id = f"gdoc_{doc_id}_{comment_id}_{recipient}"
+                for item in message_items:
+                    # We strictly log items that have explicit email "@" mentions
+                    api_mentions = item.get('mentionedEmailAddresses', [])
+                    content = item.get('content', '')
+                    regex_mentions = re.findall(r'[\w\.-]+@[\w\.-]+', content)
+                    mentions = list(set(api_mentions + regex_mentions))
+                    if not mentions: continue
                     
-                    # Upsert handles uniqueness constraints safely
-                    supabase.table("asset_notifications").upsert({
-                        "asset_id": asset['id'],
-                        "sender_email": sender,
-                        "recipient_email": recipient,
-                        "message": content,
-                        "notified_at": created_time,
-                        "source_id": source_id
-                    }, on_conflict="source_id").execute()
+                    item_id = item.get('id')
+                    created_time = item.get('createdTime')
+                    author = item.get('author', {})
+                    sender = author.get('displayName') or author.get('emailAddress') or "Google Doc User"
                     
+                    for recipient in mentions:
+                        source_id = f"gdoc_{doc_id}_{item_id}_{recipient}"
+                        
+                        # Upsert handles uniqueness constraints safely
+                        supabase.table("asset_notifications").upsert({
+                            "asset_id": asset['id'],
+                            "sender_email": sender,
+                            "recipient_email": recipient,
+                            "message": content,
+                            "notified_at": created_time,
+                            "source_id": source_id
+                        }, on_conflict="source_id").execute()
+                        
         print("== Sync Complete ==")
         
     except Exception as e:
+        import traceback
         print(f"CRITICAL ERROR in poll_asset_notifications: {str(e)}")
+        traceback.print_exc()

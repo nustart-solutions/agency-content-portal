@@ -10,6 +10,7 @@ create table public.asset_notifications (
   sender_email text not null,     -- Who initiated the notification
   recipient_email text not null,  -- Who was notified
   message text,                   -- Optional message content
+  source_id text unique,          -- Unique ID for deduplication (e.g., from Google Docs)
   notified_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
