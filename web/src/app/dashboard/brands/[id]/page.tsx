@@ -98,6 +98,32 @@ export default async function BrandDashboardPage({
     });
   });
 
+  // 5. Build Asset Lookup for Notifications & Fetch Brand-Scoped Notifications
+  const assetLookup: Record<string, { title: string, campaignName: string }> = {};
+  const assetIds: string[] = [];
+
+  sortedGroups.forEach((g: any) => {
+    g.campaign_subgroups?.forEach((sg: any) => {
+      sg.campaigns?.forEach((c: any) => {
+        c.assets?.forEach((a: any) => {
+          assetIds.push(a.id);
+          assetLookup[a.id] = { title: a.title, campaignName: c.name };
+        });
+      });
+    });
+  });
+
+  let brandNotifs: any[] = [];
+  if (assetIds.length > 0) {
+    const { data: notifs } = await supabase
+      .from('asset_notifications')
+      .select('id, sender_email, recipient_email, message, notified_at, asset_id')
+      .in('asset_id', assetIds)
+      .order('notified_at', { ascending: false })
+      .limit(15);
+    brandNotifs = notifs || [];
+  }
+
   return (
     <div className="section-container">
       <div className="section-header">
@@ -155,6 +181,59 @@ export default async function BrandDashboardPage({
 
       {/* Global Scoreboard Render */}
       <Scoreboard brandId={brandId} />
+
+      {/* Recent Notifications Widget (Scoped to this Brand) */}
+      <div style={{ marginTop: '2.5rem' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Recent Notifications</h2>
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+          {(!brandNotifs || brandNotifs.length === 0) ? (
+            <div style={{ textAlign: 'center', color: 'var(--muted)', padding: '1rem' }}>
+              No recent notifications found for this brand.
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="interactive-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                    <th style={{ padding: '1rem', color: 'var(--muted)', fontWeight: 500 }}>Time</th>
+                    <th style={{ padding: '1rem', color: 'var(--muted)', fontWeight: 500 }}>From</th>
+                    <th style={{ padding: '1rem', color: 'var(--muted)', fontWeight: 500 }}>Message</th>
+                    <th style={{ padding: '1rem', color: 'var(--muted)', fontWeight: 500 }}>Asset / Campaign</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {brandNotifs.map((notif: any) => {
+                    const date = new Date(notif.notified_at).toLocaleString();
+                    const assetContext = assetLookup[notif.asset_id];
+                    
+                    return (
+                      <tr key={notif.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{date}</td>
+                        <td style={{ padding: '1rem', fontSize: '0.85rem' }}>{notif.sender_email}</td>
+                        <td style={{ padding: '1rem', fontSize: '0.9rem' }}>
+                          <div style={{ maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {notif.message}
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem', fontSize: '0.85rem' }}>
+                          {assetContext && (
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <Link href={`/dashboard/assets/${notif.asset_id}`} style={{ fontWeight: 500, color: 'var(--brand-primary)', textDecoration: 'none' }}>
+                                {assetContext.title}
+                              </Link>
+                              <span style={{ color: 'var(--muted)' }}>{assetContext.campaignName}</span>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Brand Intelligence Context Section */}
       <div style={{ marginTop: '2.5rem', marginBottom: '2.5rem' }}>
