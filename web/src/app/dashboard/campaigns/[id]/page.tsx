@@ -7,6 +7,7 @@ import DeleteCampaignButton from './DeleteCampaignButton'
 import CreateSpokesModal from './CreateSpokesModal'
 import EditableAssetTitle from './EditableAssetTitle'
 import AssetNotificationsModal from './AssetNotificationsModal'
+import CampaignImagesManager from './CampaignImagesManager'
 
 export default async function CampaignPage({ 
   params 
@@ -133,6 +134,9 @@ export default async function CampaignPage({
             </div>
           )}
         </section>
+
+        {/* Campaign Approved Images */}
+        <CampaignImagesManager campaignId={campaign.id} />
 
         {/* Support Assets */}
         <section className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
