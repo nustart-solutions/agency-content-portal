@@ -75,9 +75,12 @@ export default async function CampaignPage({
 
       {assetsError && <div style={{ color: '#ef4444', marginBottom: '1rem' }}>Error loading assets: {assetsError.message}</div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', alignItems: 'start' }}>
         
-        {/* Anchor Assets */}
+        {/* Left Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          
+          {/* Anchor Assets */}
         <section className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
             Anchor Assets (Cornerstone)
@@ -137,7 +140,12 @@ export default async function CampaignPage({
 
         {/* Campaign Approved Images */}
         <CampaignImagesManager campaignId={campaign.id} />
+        
+        </div> {/* End Left Column */}
 
+        {/* Right Column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        
         {/* Support Assets */}
         <section className="glass-panel" style={{ padding: '2rem', borderRadius: '12px' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, borderBottom: '1px solid var(--border)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
@@ -192,6 +200,8 @@ export default async function CampaignPage({
             </div>
           )}
         </section>
+        
+        </div> {/* End Right Column */}
 
       </div>
     </div>
