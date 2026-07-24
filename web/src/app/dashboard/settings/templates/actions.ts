@@ -16,7 +16,7 @@ export async function updateChannelTemplate(channelName: string, templateInstruc
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (roleData && roleData.role === 'brand_user') {
     return { error: 'Unauthorized. You must be an admin to edit global templates.' }

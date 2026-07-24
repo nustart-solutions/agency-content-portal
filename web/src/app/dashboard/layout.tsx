@@ -16,7 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .from('user_roles')
       .select('role, brand_id')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
       
     if (roleData) {
       userRole = roleData.role

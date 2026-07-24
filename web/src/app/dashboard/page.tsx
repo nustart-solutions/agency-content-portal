@@ -17,7 +17,7 @@ export default async function DashboardPage() {
     .from('user_roles')
     .select('role, brand_id')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (roleData?.role === 'brand_user' && roleData?.brand_id) {
     return redirect(`/dashboard/brands/${roleData.brand_id}`)

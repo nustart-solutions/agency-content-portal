@@ -14,7 +14,7 @@ export default async function AssetPage({
   const { data: { user } } = await supabase.auth.getUser()
   let userRole = null
   if (user) {
-    const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', user.id).single()
+    const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle()
     if (roleData) {
       userRole = roleData.role
     }

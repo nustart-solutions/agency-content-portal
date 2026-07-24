@@ -17,7 +17,7 @@ export default async function GlobalTemplatesPage() {
     .from('user_roles')
     .select('role')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (roleData && roleData.role === 'brand_user') {
     redirect('/dashboard') // unauthorized
