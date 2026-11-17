@@ -68,6 +68,35 @@
   transition: opacity 0.2s ease;
 }
 
+/* Text wordmark (used while there is no logo image). Uses theme colours,
+   so one element works in both light and dark themes. */
+.portal-wordmark {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.portal-wordmark small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.portal-wordmark-large {
+  align-items: center;
+  font-size: 1.75rem;
+}
+
+.portal-wordmark-large small {
+  font-size: 0.8rem;
+}
+
 .sidebar-logo-light {
   display: none;
 }

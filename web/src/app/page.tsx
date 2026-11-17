@@ -7,8 +7,8 @@ export default function Home() {
       <div className="login-container glass-panel">
         <div className="login-header">
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '1.5rem' }}>
-            <img src="https://nustart.solutions/wp-content/uploads/2026/03/VA-darktheme.png" alt="ValueArc Agency Portal" className="sidebar-logo-img sidebar-logo-dark" style={{ maxWidth: '240px' }} />
-            <img src="https://nustart.solutions/wp-content/uploads/2026/03/VA-light-theme.png" alt="ValueArc Agency Portal" className="sidebar-logo-img sidebar-logo-light" style={{ maxWidth: '240px' }} />
+            {/* Text wordmark until logo files are added to web/public/logos/ */}
+            <span className="portal-wordmark portal-wordmark-large">ValueArc<small>Agency Portal</small></span>
           </div>
           <p>Sign in to track your brand campaigns.</p>
         </div>

@@ -29,8 +29,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Persistent Glass Sidebar */}
       <aside className="dashboard-sidebar">
         <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center' }}>
-           <img src="https://nustart.solutions/wp-content/uploads/2026/03/VA-darktheme.png" alt="ValueArc Agency Portal" className="sidebar-logo-img sidebar-logo-dark" />
-           <img src="https://nustart.solutions/wp-content/uploads/2026/03/VA-light-theme.png" alt="ValueArc Agency Portal" className="sidebar-logo-img sidebar-logo-light" />
+           {/* Text wordmark until logo files are added to web/public/logos/ */}
+           <span className="portal-wordmark">ValueArc<small>Agency Portal</small></span>
         </div>
         
         <SidebarNav userRole={userRole} userBrandId={userBrandId} />

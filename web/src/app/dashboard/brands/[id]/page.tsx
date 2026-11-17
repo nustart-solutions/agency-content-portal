@@ -8,6 +8,7 @@ import AddBrandContextModal from './AddBrandContextModal'
 import EditBrandContextModal from './EditBrandContextModal'
 import EditBrandModal from './EditBrandModal'
 import SpiderWebsiteButton from './SpiderWebsiteButton'
+import BrandLogo from './BrandLogo'
 import Scoreboard from '@/components/Scoreboard'
 
 export default async function BrandDashboardPage({
@@ -132,13 +133,7 @@ export default async function BrandDashboardPage({
             &larr; Back to {brand.organizations?.name || 'Organization'}
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            {brand.logo_url && (
-              <img 
-                src={brand.logo_url} 
-                alt={`${brand.name} logo`} 
-                style={{ height: '36px', width: 'auto', borderRadius: '6px', objectFit: 'contain' }} 
-              />
-            )}
+            {brand.logo_url && <BrandLogo src={brand.logo_url} name={brand.name} />}
             <h1 className="page-title">{brand.name} Dashboard</h1>
             <EditBrandModal 
               brand={{
