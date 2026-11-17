@@ -7,8 +7,8 @@ image = (
     modal.Image.debian_slim()
     .pip_install(
         "fastapi",
-        "supabase", 
-        "google-genai", 
+        "supabase",
+        "anthropic==2.10.0",
         "requests",
         "google-api-python-client",
         "google-auth",
@@ -21,6 +21,71 @@ image = (
 app = modal.App("content-portal-execution")
 
 # ==========================================
+# AI PROVIDER: Claude (Anthropic)
+# All text generation goes through generate_text(), so switching
+# provider or model later is a change in this one place.
+# Needs ANTHROPIC_API_KEY in the Modal secret "content-portal-secrets".
+# ==========================================
+CLAUDE_MODEL = "claude-opus-5-5"
+
+
+def generate_text(prompt: str, effort: str = "medium", max_tokens: int = 32000) -> str:
+    """Send one prompt to Claude and return its text reply.
+
+    effort: "low" | "medium" | "high" - how hard the model thinks (cost/time vs quality).
+    Raises RuntimeError with a plain-English message on any failure, so callers can
+    show it to the user instead of failing silently.
+    """
+    import anthropic
+
+    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from the environment
+    try:
+        # Streaming avoids HTTP timeouts on long inputs/outputs.
+        # fallbacks="default": if a safety classifier declines, the API retries
+        # on Anthropic's recommended fallback model inside the same call.
+        with client.beta.messages.stream(
+            model=CLAUDE_MODEL,
+            max_tokens=max_tokens,
+            betas=["server-side-fallback-2026-07-01"],
+            fallbacks="default",
+            output_config={"effort": effort},
+            messages=[{"role": "user", "content": prompt}],
+        ) as stream:
+            message = stream.get_final_message()
+    except anthropic.AuthenticationError:
+        raise RuntimeError("Claude API key is missing or invalid (ANTHROPIC_API_KEY in Modal secret content-portal-secrets).")
+    except anthropic.PermissionDeniedError as e:
+        raise RuntimeError(f"Claude API key lacks permission: {e.message}")
+    except anthropic.RateLimitError:
+        raise RuntimeError("Claude rate limit reached. Try again in a minute.")
+    except anthropic.BadRequestError as e:
+        # Includes "Your credit balance is too low" when Anthropic credits run out
+        raise RuntimeError(f"Claude rejected the request: {e.message}")
+    except anthropic.APIStatusError as e:
+        raise RuntimeError(f"Claude API error {e.status_code}: {e.message}")
+    except anthropic.APIConnectionError:
+        raise RuntimeError("Could not reach the Claude API (network error).")
+
+    if message.stop_reason == "refusal":
+        raise RuntimeError("Claude declined this request (safety filter). Try rewording the title or brief.")
+    text = "".join(block.text for block in message.content if block.type == "text").strip()
+    if message.stop_reason == "max_tokens":
+        raise RuntimeError(f"Claude's reply was cut off at {max_tokens} tokens.")
+    if not text:
+        raise RuntimeError("Claude returned an empty reply.")
+    return text
+
+
+def record_generation_error(supabase, asset_id: str, error_message) -> None:
+    """Best-effort: store (or clear, with None) the last generation error on the asset.
+    Kept separate from the main status update so a missing generation_error column
+    (migration 22 not applied yet) can never break saving content or reverting status."""
+    try:
+        supabase.table("assets").update({"generation_error": error_message}).eq("id", asset_id).execute()
+    except Exception as e:
+        print(f"(could not write generation_error: {e})")
+
+# ==========================================
 # WEBHOOK: generate_asset
 # ==========================================
 @app.function(
@@ -31,12 +96,11 @@ app = modal.App("content-portal-execution")
     ],
     timeout=600 # 10 mins execution for heavy AI tasks
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def generate_asset(data: Dict[str, Any]):
     import os
     from supabase import create_client
-    from google import genai
-    
+
     # 1. Init Connections
     print(f"== Starting Generate Asset for {data} ==")
     supabase_url = os.environ.get("SUPABASE_URL")
@@ -84,7 +148,6 @@ def generate_asset(data: Dict[str, Any]):
             compiled_context = "--- TONE GUIDELINES ---\nProfessional, authoritative, yet approachable."
             spoke_context = compiled_context
             
-        client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
         deep_research_context = ""
         
         # 3.5 DEEP RESEARCH
@@ -97,8 +160,8 @@ def generate_asset(data: Dict[str, Any]):
                 print("  -> Extracting targeted facts from Master Knowledge Blob...")
                 # We limit to first 300k chars to guarantee we stay comfortably within token limits for a quick retrieval
                 kr_prompt = f"The following is raw scraped content from a brand's website:\n\n{master_knowledge[:300000]}\n\nExtract the top 10 most relevant facts, capabilities, or stances this brand has regarding the topic: '{asset['title']}'. Return only the facts."
-                kr_resp = client.models.generate_content(model='gemini-2.5-flash', contents=kr_prompt)
-                deep_research_context += f"--- TARGETED BRAND FACTS ---\n{kr_resp.text}\n\n"
+                kr_text = generate_text(kr_prompt, effort="low")
+                deep_research_context += f"--- TARGETED BRAND FACTS ---\n{kr_text}\n\n"
                 
             # B. DataForSEO SERP Analysis
             dfs_login = os.environ.get("DATAFORSEO_LOGIN")
@@ -136,8 +199,8 @@ def generate_asset(data: Dict[str, Any]):
                                     
                             if competitor_texts:
                                 comp_prompt = "Summarize the core outline and key missing gaps from these top-ranking competitors:\n\n" + "\n---\n".join(competitor_texts)
-                                comp_resp = client.models.generate_content(model='gemini-2.5-flash', contents=comp_prompt)
-                                deep_research_context += f"--- COMPETITOR OUTLINE & GAPS ---\n{comp_resp.text}\n\n"
+                                comp_text = generate_text(comp_prompt, effort="low")
+                                deep_research_context += f"--- COMPETITOR OUTLINE & GAPS ---\n{comp_text}\n\n"
                 except Exception as e:
                     print(f"  -> DataForSEO/Competitor scraping failed: {e}")
             else:
@@ -222,11 +285,7 @@ Return raw text/markdown (no markdown blocks like ```markdown)."""
 
 Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['channel']} channel. Return raw markdown (no markdown blocks like ```markdown)."""
 
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt
-        )
-        content = response.text
+        content = generate_text(prompt, effort="high")
         
         # 4.1 Convert to Google Doc (if credentials present)
         import markdown
@@ -356,7 +415,8 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
             update_payload["google_doc_url"] = google_doc_url
             
         supabase.table("assets").update(update_payload).eq("id", asset_id).execute()
-        
+        record_generation_error(supabase, asset_id, None)  # clear any earlier failure
+
         # 6. Auto-publish skip
         if not requires_approval:
             # We call the publish function directly inside Modal to save latency
@@ -372,6 +432,7 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
             supabase.table("assets").update({"status": "draft"}).eq("id", asset_id).execute()
         except Exception as inner_e:
             print(f"FAILED to revert to draft: {str(inner_e)}")
+        record_generation_error(supabase, asset_id, str(e)[:1000])
         return {"error": str(e)}
 
 
@@ -382,7 +443,7 @@ Write an optimized {asset['asset_type']} about '{asset['title']}' for a {asset['
     image=image,
     secrets=[modal.Secret.from_name("content-portal-secrets")]
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def ingest_client_asset(data: Dict[str, Any]):
     import os
     import requests
@@ -422,7 +483,7 @@ def ingest_client_asset(data: Dict[str, Any]):
     image=image,
     secrets=[modal.Secret.from_name("content-portal-secrets")]
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def publish_asset(data: Dict[str, Any]):
     import os
     from supabase import create_client
@@ -466,7 +527,7 @@ def publish_asset(data: Dict[str, Any]):
     secrets=[modal.Secret.from_name("content-portal-secrets")],
     timeout=600 # upgraded to 600s to allow multiple pages
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def generate_brand_context(data: Dict[str, Any]):
     import os
     import requests
@@ -474,9 +535,7 @@ def generate_brand_context(data: Dict[str, Any]):
     import xml.etree.ElementTree as ET
     from urllib.parse import urlparse
     from supabase import create_client
-    from google import genai
-    from google.genai import types
-    
+
     brand_id = data.get("brand_id")
     website_url = data.get("website_url")
     
@@ -519,7 +578,7 @@ def generate_brand_context(data: Dict[str, Any]):
         except Exception as e:
             print(f"Sitemap parsing failed: {e}. Defaulting to homepage only.")
             
-        # Ensure unique, cap realistically at 500 to keep within Gemini 1M token context limit
+        # Ensure unique, cap realistically at 500 to keep within Claude's 1M token context limit
         # but capture virtually all pages for small-to-medium businesses.
         urls_to_scrape = list(dict.fromkeys(urls_to_scrape))[:500]
         
@@ -560,9 +619,7 @@ def generate_brand_context(data: Dict[str, Any]):
         if not compiled_website_text.strip():
             raise Exception("No content could be extracted from the website.")
             
-        # 4. Call Gemini to synthesize
-        client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-        
+        # 4. Call Claude to synthesize
         prompt = f"""You are a master brand strategist. I have used a web-crawler to extract the entire text content of this client's website.
         
 Read through their massive website context blob below, and generate 3 rigid pieces of context based ONLY on their current brand identity and facts. 
@@ -576,14 +633,11 @@ Format your response as pure JSON matching this exact structure:
 WEBSITE CONTEXT:
 {compiled_website_text[:700000]}
 """
-        print("Sending large website packet to Gemini for JSON extraction...")
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-        )
-        
+        print("Sending large website packet to Claude for JSON extraction...")
+        response_text = generate_text(prompt, effort="medium")
+
         # Extract JSON (strip potential markdown wrappers)
-        raw_text = response.text.strip()
+        raw_text = response_text.strip()
         if raw_text.startswith("```json"):
             raw_text = raw_text[7:-3]
         elif raw_text.startswith("```"):
@@ -628,7 +682,7 @@ WEBSITE CONTEXT:
     ],
     timeout=120
 )
-@modal.web_endpoint(method="POST")
+@modal.fastapi_endpoint(method="POST")
 def sync_asset_from_doc(data: Dict[str, Any]):
     import os
     import re

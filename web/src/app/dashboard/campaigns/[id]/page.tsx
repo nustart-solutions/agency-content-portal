@@ -121,6 +121,11 @@ export default async function CampaignPage({
                       {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
                       {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
                     </div>
+                    {asset.status === 'draft' && asset.generation_error && (
+                      <div role="alert" style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#f87171' }}>
+                        Last AI generation failed: {asset.generation_error}
+                      </div>
+                    )}
                     <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
                       <AssetNotificationsModal assetId={asset.id} campaignId={campaign.id} />
                     </div>
@@ -187,6 +192,11 @@ export default async function CampaignPage({
                       {asset.approved_at && <span>• Approved: {new Date(asset.approved_at).toLocaleDateString()}</span>}
                       {asset.published_at && <span>• Published: {new Date(asset.published_at).toLocaleDateString()}</span>}
                     </div>
+                    {asset.status === 'draft' && asset.generation_error && (
+                      <div role="alert" style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#f87171' }}>
+                        Last AI generation failed: {asset.generation_error}
+                      </div>
+                    )}
                     <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
                       <AssetNotificationsModal assetId={asset.id} campaignId={campaign.id} />
                     </div>
