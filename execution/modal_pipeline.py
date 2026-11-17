@@ -840,7 +840,13 @@ def poll_asset_notifications():
     from supabase import create_client
     from google.oauth2.service_account import Credentials
     from googleapiclient.discovery import build
-    
+
+    # 0. Housekeeping first (runs even in quiet hours; never blocks the sync)
+    try:
+        reset_stuck_assets()
+    except Exception as e:
+        print(f"reset_stuck_assets failed: {e}")
+
     # 1. Check early exit for quiet hours (10pm - 5am EST)
     # Get current UTC hour
     current_utc_hour = datetime.now(timezone.utc).hour
@@ -956,21 +962,16 @@ def poll_asset_notifications():
 
 
 # ==========================================
-# CRON: reset_stuck_assets
+# HELPER: reset_stuck_assets (called by the poll_asset_notifications cron)
 # A generation that crashes or hits the 10-minute worker timeout never runs
-# its own clean-up, so the asset would sit on "in_progress" forever. Every
-# 15 minutes, put any asset stuck for over 20 minutes back to draft with a
+# its own clean-up, so the asset would sit on "in_progress" forever. Each
+# cron run puts any asset stuck for over 20 minutes back to draft with a
 # readable reason. Assets with no generation_started_at are left alone.
+# Lives inside the existing cron so there is one scheduled job, not two.
 # ==========================================
 STUCK_AFTER_MINUTES = 20
 
 
-@app.function(
-    image=image,
-    secrets=[modal.Secret.from_name("content-portal-secrets")],
-    schedule=modal.Cron("*/15 * * * *"),
-    timeout=60
-)
 def reset_stuck_assets():
     import os
     from datetime import datetime, timedelta, timezone
