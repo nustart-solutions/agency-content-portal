@@ -20,8 +20,9 @@ export default function SpiderWebsiteButton({
     <button 
       onClick={() => {
         if (websiteUrl) {
-          startTransition(() => {
-            triggerGenerateBrandContext(brandId, websiteUrl)
+          startTransition(async () => {
+            const result = await triggerGenerateBrandContext(brandId, websiteUrl)
+            if (result?.error) alert(`Could not start spidering: ${result.error}`)
           })
         }
       }}

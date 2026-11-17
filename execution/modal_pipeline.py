@@ -86,7 +86,24 @@ def record_generation_error(supabase, asset_id: str, error_message) -> None:
         print(f"(could not write generation_error: {e})")
 
 # ==========================================
-# WEBHOOK: generate_asset
+# WEBHOOK: generate_asset (accept + hand off)
+# Replies within a second or two so the Vercel server action can wait for
+# the reply and know the job really started. The work itself runs in
+# run_generate_asset in the background. Keep this function's name: the
+# endpoint URL (...-generate-asset.modal.run) is derived from it.
+# ==========================================
+@app.function(image=image)
+@modal.fastapi_endpoint(method="POST")
+def generate_asset(data: Dict[str, Any]):
+    if not data.get("asset_id"):
+        return {"error": "asset_id required"}
+    call = run_generate_asset.spawn(data)
+    print(f"Accepted generate_asset for {data.get('asset_id')} (call {call.object_id})")
+    return {"accepted": True, "call_id": call.object_id}
+
+
+# ==========================================
+# WORKER: run_generate_asset (the actual generation)
 # ==========================================
 @app.function(
     image=image,
@@ -96,9 +113,9 @@ def record_generation_error(supabase, asset_id: str, error_message) -> None:
     ],
     timeout=600 # 10 mins execution for heavy AI tasks
 )
-@modal.fastapi_endpoint(method="POST")
-def generate_asset(data: Dict[str, Any]):
+def run_generate_asset(data: Dict[str, Any]):
     import os
+    from datetime import datetime, timezone
     from supabase import create_client
 
     # 1. Init Connections
@@ -115,7 +132,17 @@ def generate_asset(data: Dict[str, Any]):
     if not asset_id:
         print("ERROR: API payload did not contain 'asset_id'")
         return {"error": "asset_id required"}
-        
+
+    # Stamp the start time (best-effort, separate update) so reset_stuck_assets can
+    # spot a run that crashed or hit the 10-minute timeout without cleaning up.
+    try:
+        supabase.table("assets").update({
+            "status": "in_progress",
+            "generation_started_at": datetime.now(timezone.utc).isoformat(),
+        }).eq("id", asset_id).execute()
+    except Exception as e:
+        print(f"(could not stamp generation_started_at: {e})")
+
     try:
         # 2. Fetch Asset and Hierarchical Context
         asset_res = supabase.table("assets").select(
@@ -519,16 +546,28 @@ def publish_asset(data: Dict[str, Any]):
         return {"error": str(e)}
 
 # ==========================================
+# WEBHOOK: generate_brand_context (accept + hand off)
+# Same pattern as generate_asset: reply at once, work in the background.
 # ==========================================
-# WEBHOOK: generate_brand_context
+@app.function(image=image)
+@modal.fastapi_endpoint(method="POST")
+def generate_brand_context(data: Dict[str, Any]):
+    if not data.get("brand_id") or not data.get("website_url"):
+        return {"error": "brand_id and website_url required"}
+    call = run_generate_brand_context.spawn(data)
+    print(f"Accepted generate_brand_context for {data.get('brand_id')} (call {call.object_id})")
+    return {"accepted": True, "call_id": call.object_id}
+
+
+# ==========================================
+# WORKER: run_generate_brand_context (spider + Claude synthesis)
 # ==========================================
 @app.function(
     image=image,
     secrets=[modal.Secret.from_name("content-portal-secrets")],
     timeout=600 # upgraded to 600s to allow multiple pages
 )
-@modal.fastapi_endpoint(method="POST")
-def generate_brand_context(data: Dict[str, Any]):
+def run_generate_brand_context(data: Dict[str, Any]):
     import os
     import requests
     import json
@@ -914,3 +953,44 @@ def poll_asset_notifications():
         import traceback
         print(f"CRITICAL ERROR in poll_asset_notifications: {str(e)}")
         traceback.print_exc()
+
+
+# ==========================================
+# CRON: reset_stuck_assets
+# A generation that crashes or hits the 10-minute worker timeout never runs
+# its own clean-up, so the asset would sit on "in_progress" forever. Every
+# 15 minutes, put any asset stuck for over 20 minutes back to draft with a
+# readable reason. Assets with no generation_started_at are left alone.
+# ==========================================
+STUCK_AFTER_MINUTES = 20
+
+
+@app.function(
+    image=image,
+    secrets=[modal.Secret.from_name("content-portal-secrets")],
+    schedule=modal.Cron("*/15 * * * *"),
+    timeout=60
+)
+def reset_stuck_assets():
+    import os
+    from datetime import datetime, timedelta, timezone
+    from supabase import create_client
+
+    supabase = create_client(os.environ.get("SUPABASE_URL", ""), os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""))
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=STUCK_AFTER_MINUTES)).isoformat()
+    try:
+        stuck = supabase.table("assets").select("id, title") \
+            .eq("status", "in_progress") \
+            .lt("generation_started_at", cutoff) \
+            .execute().data or []
+    except Exception as e:
+        print(f"reset_stuck_assets: query failed (is migration 23 applied?): {e}")
+        return
+
+    for asset in stuck:
+        print(f"Resetting stuck asset {asset['id']} ({asset['title']}) to draft")
+        supabase.table("assets").update({
+            "status": "draft",
+            "generation_error": f"Generation did not finish within {STUCK_AFTER_MINUTES} minutes (crashed or timed out). Try Generate AI again.",
+        }).eq("id", asset["id"]).execute()
+    print(f"reset_stuck_assets: {len(stuck)} asset(s) reset")

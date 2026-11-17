@@ -3,6 +3,15 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { callModal } from '@/utils/modal'
+
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+
+// Put an asset back to draft and record why, so the campaign page shows the reason.
+async function markGenerationFailed(supabase: SupabaseServerClient, assetId: string, reason: string) {
+  await supabase.from('assets').update({ status: 'draft' }).eq('id', assetId)
+  await supabase.from('assets').update({ generation_error: reason }).eq('id', assetId)
+}
 
 export async function createAsset(campaignId: string, formData: FormData) {
   const supabase = await createClient()
@@ -110,25 +119,23 @@ export async function triggerGenerateAsset(assetId: string, campaignId: string) 
     return { error: error.message }
   }
 
-  // Step 2: Trigger Modal Webhook asynchronously (Fire and forget)
-  // In production, this fetch would hit your Modal Layer 3 endpoint.
-  const modalUrl = process.env.MODAL_GENERATE_ASSET_URL || 'https://example.modal.run'
-  try {
-    fetch(modalUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        asset_id: assetId,
-        requires_approval: requiresApproval,
-        title: assetData?.title,
-        asset_type: assetData?.asset_type,
-        deep_research: assetData?.deep_research || false,
-        brand_name: brandName,
-        campaign_name: campaignName
-      })
-    }).catch(e => console.error("Modal fetch failed (async):", e))
-  } catch (err) {
-    console.error("Modal fetch setup failed:", err)
+  // Step 2: Hand the job to Modal and wait for it to confirm it was accepted
+  // (Modal replies in seconds; the generation itself runs in the background).
+  const call = await callModal('MODAL_GENERATE_ASSET_URL', {
+    asset_id: assetId,
+    requires_approval: requiresApproval,
+    title: assetData?.title,
+    asset_type: assetData?.asset_type,
+    deep_research: assetData?.deep_research || false,
+    brand_name: brandName,
+    campaign_name: campaignName
+  })
+
+  if (!call.ok) {
+    console.error('Generate asset could not start:', call.error)
+    await markGenerationFailed(supabase, assetId, call.error)
+    revalidatePath(`/dashboard/campaigns/${campaignId}`)
+    return { error: call.error }
   }
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
@@ -158,17 +165,14 @@ export async function submitExternalAsset(assetId: string, campaignId: string, f
     return { error: error.message }
   }
 
-  // Optional: Trigger Modal to scrape/QA the submitted URL
-  const modalUrl = process.env.MODAL_INGEST_ASSET_URL || 'https://example.modal.run'
-  try {
-    fetch(modalUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ asset_id: assetId, url: externalUrl })
-    }).catch(e => console.error("Modal ingest failed (async):", e))
-  } catch (err) { }
+  // Trigger Modal to scrape/QA the submitted URL (quick job, so we wait for it)
+  const call = await callModal('MODAL_INGEST_ASSET_URL', { asset_id: assetId, url: externalUrl })
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  if (!call.ok) {
+    console.error('Modal ingest failed:', call.error)
+    return { error: `Saved for review, but importing the document failed: ${call.error}` }
+  }
   return { success: true }
 }
 
@@ -189,19 +193,14 @@ export async function triggerPublishAsset(assetId: string, campaignId: string) {
     return { error: error.message }
   }
 
-  // Trigger Modal Webhook asynchronously (Fire and forget) to actually publish
-  const modalUrl = process.env.MODAL_PUBLISH_ASSET_URL || 'https://example.modal.run'
-  try {
-    fetch(modalUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ asset_id: assetId })
-    }).catch(e => console.error("Modal publish failed (async):", e))
-  } catch (err) {
-    console.error("Modal publish setup failed:", err)
-  }
+  // Trigger Modal to actually publish (quick job, so we wait for it)
+  const call = await callModal('MODAL_PUBLISH_ASSET_URL', { asset_id: assetId })
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  if (!call.ok) {
+    console.error('Modal publish failed:', call.error)
+    return { error: `Marked as published, but the publish step failed: ${call.error}` }
+  }
   return { success: true }
 }
 
@@ -284,6 +283,7 @@ export async function bulkCreateSpokeAssets(campaignId: string, anchorId: string
   const baseTitle = anchorData.title
 
   // Create each spoke
+  const failedChannels: string[] = []
   for (const channel of channels) {
     let assetType = 'social_post'
     if (channel === 'gmb_post') assetType = 'gmb_post'
@@ -310,28 +310,27 @@ export async function bulkCreateSpokeAssets(campaignId: string, anchorId: string
       continue;
     }
 
-    // 2. Trigger Webhook async
-    const modalUrl = process.env.MODAL_GENERATE_ASSET_URL || 'https://example.modal.run'
-    try {
-      fetch(modalUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          asset_id: newAsset.id,
-          requires_approval: requiresApproval,
-          title: `${channel.replace('_', ' ').toUpperCase()} - ${baseTitle}`,
-          asset_type: assetType,
-          deep_research: false,
-          brand_name: brandName,
-          campaign_name: campaignName
-        })
-      }).catch(e => console.error(`Modal fetch failed for ${channel}:`, e))
-    } catch (err) {
-      console.error(`Modal fetch setup failed for ${channel}:`, err)
+    // 2. Hand the job to Modal and wait for it to confirm it was accepted
+    const call = await callModal('MODAL_GENERATE_ASSET_URL', {
+      asset_id: newAsset.id,
+      requires_approval: requiresApproval,
+      title: `${channel.replace('_', ' ').toUpperCase()} - ${baseTitle}`,
+      asset_type: assetType,
+      deep_research: false,
+      brand_name: brandName,
+      campaign_name: campaignName
+    })
+    if (!call.ok) {
+      console.error(`Generate spoke could not start for ${channel}:`, call.error)
+      await markGenerationFailed(supabase, newAsset.id, call.error)
+      failedChannels.push(channel)
     }
   }
 
   revalidatePath(`/dashboard/campaigns/${campaignId}`)
+  if (failedChannels.length > 0) {
+    return { error: `Could not start generation for: ${failedChannels.join(', ')}. Those spokes were left as drafts; see the error on each.` }
+  }
   return { success: true }
 }
 

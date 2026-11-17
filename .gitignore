@@ -1,0 +1,12 @@
+# Python bytecode caches (regenerated on every run)
+__pycache__/
+*.py[cod]
+
+# Intermediates (see CLAUDE.md: never commit, always regenerated)
+.tmp/
+
+# Secrets and Google OAuth files (web/ has its own .gitignore for .env*)
+.env
+.env.*
+credentials.json
+token.json

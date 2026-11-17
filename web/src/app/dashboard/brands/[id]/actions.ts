@@ -2,6 +2,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { callModal } from '@/utils/modal'
 
 export async function createCampaignGroup(brandId: string, formData: FormData) {
   const supabase = await createClient()
@@ -154,16 +155,15 @@ export async function triggerGenerateBrandContext(brandId: string, websiteUrl: s
     return { error: error.message }
   }
 
-  // Step 2: Trigger Modal Webhook asynchronously (Fire and forget)
-  const modalUrl = process.env.MODAL_GENERATE_BRAND_CONTEXT_URL || 'https://content-portal-execution-generate-brand-context.modal.run'
-  try {
-    fetch(modalUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ brand_id: brandId, website_url: websiteUrl })
-    }).catch(e => console.error("Modal fetch failed (async):", e))
-  } catch (err) {
-    console.error("Modal fetch setup failed:", err)
+  // Step 2: Hand the job to Modal and wait for it to confirm it was accepted
+  // (Modal replies in seconds; the spidering runs in the background).
+  const call = await callModal('MODAL_GENERATE_BRAND_CONTEXT_URL', { brand_id: brandId, website_url: websiteUrl })
+
+  if (!call.ok) {
+    console.error('Brand context generation could not start:', call.error)
+    await supabase.from('brands').update({ context_status: 'missing' }).eq('id', brandId)
+    revalidatePath(`/dashboard/brands/${brandId}`)
+    return { error: call.error }
   }
 
   revalidatePath(`/dashboard/brands/${brandId}`)
